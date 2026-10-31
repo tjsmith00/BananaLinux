@@ -1,5 +1,5 @@
 #!/bin/sh
-# Settings > Nintendo DS > Reset: the DS emulators' settings back to Banana's, for a setup gone wrong (a button
+# Settings > Nintendo DS > SuperDrastic or BananaDS > Reset: the DS emulators' settings back to Banana's, for a setup gone wrong (a button
 # remapped in DraStic's menu until nothing opened it any more). Saves, save states, cheats and the per-game clocks
 # stay; so do DraStic's firmware name, language and birthday (the games' profile, not a setting).
 #   nds-reset buttons     DraStic's buttons (every controls_a/controls_b line) as on a new card

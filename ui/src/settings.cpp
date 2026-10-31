@@ -462,6 +462,7 @@ namespace banana
 		return v > 0 && v <= 1000 ? v : -1;
 	}
 
+	static bool tileless(const std::string& section);
 	void Settings::build()
 	{
 		std::string menu = data + "/settings.conf", power = data + "/bananad.conf", sd = data + "/superdrastic.conf";
@@ -513,12 +514,11 @@ namespace banana
 			power, "fast_resume", { "Fast", "Careful" }, { "yes", "no" });
 		add(P, "moon", "LEDs", "Green, red when the battery is low, blinking red when nearly empty, amber while charging.", power, "led_brightness",
 			{ "Bright", "Dim", "Off" }, { "255", "40", "0" });
-		// Nintendo DS: the emulator and the quick resume are shared; below them only the chosen emulator's own settings,
-		// each in that emulator's files (switching the emulator builds the list again: change()). Both draw the DS's 3D
-		// with SuperDrastic's Gengis Engine, always (run-drastic, run-bananads).
+		// Nintendo DS: what both emulators share (the emulator, quick resume, the DS's language and name, the buttons),
+		// then a page for each emulator's own settings, in that emulator's files, both whichever is chosen (to set one up
+		// before switching to it). Both draw the DS's 3D with SuperDrastic's Gengis Engine, always (run-drastic, run-bananads).
 		const char* N = "Nintendo DS";
-		const std::string emu = getConfValue(menu, "nds_emulator", getConfValue("/etc/banana/settings.conf", "nds_emulator", "superdrastic"));
-		add(N, "nds", "Emulator", "SuperDrastic: DraStic straight onto both panels, with its own governor. BananaDS: Banana's own emulator (melonDS's core). Both draw 3D with the Gengis Engine at 2x and have their menu on F; each keeps its own settings below. X on a game in the library picks one for that game alone.",
+		add(N, "nds", "Emulator", "SuperDrastic: DraStic straight onto both panels, with its own governor. BananaDS: Banana's own emulator (melonDS's core). Both draw 3D with the Gengis Engine at 2x and have their menu on F; each keeps its own settings on its page below. X on a game in the library picks one for that game alone.",
 			menu, "nds_emulator", { "SuperDrastic", "BananaDS" }, { "superdrastic", "bananads" });
 		add(N, "nds", "Quick resume", "On: quitting keeps where you are, and the game goes on from there next time (a shutdown too). Off: quitting ends the game, which starts from its title next time.",
 			menu, "quick_resume", { "Off", "On" }, { "off", "on" });
@@ -527,62 +527,65 @@ namespace banana
 			"", "ds_language", { "English", "Japanese", "French", "German", "Italian", "Spanish" }, { "1", "0", "2", "3", "4", "5" });
 		// L2, R2, L3 and R3's jobs, the same in both emulators (the DS buttons page below; nds-buttons)
 		add(N, "nds", "Buttons", "What L2, R2, L3 and R3 do in a DS game, the same in both emulators: swap the screens, fast-forward, blow on the mic, save or load a state, the menu, one of the DS's buttons, or nothing. F + R saves and F + L loads a state in both.", "", "ds_buttons", {}, {}, Item::PAGE);
-		// each DS emulator's hotkeys, both whichever is chosen (their pages after System's Hotkeys)
-		add(N, "nds", "SuperDrastic hotkeys", "The buttons that do something in a DS game in SuperDrastic: its menu, quitting, swapping the screens, save states, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_sd", {}, {}, Item::PAGE);
-		add(N, "nds", "BananaDS hotkeys", "The buttons that do something in a DS game in BananaDS: its menu, quitting, swapping the screens, save states, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_bds", {}, {}, Item::PAGE);
 		// the DS's own name (its firmware's user name), in both emulators at once: what a game calls you (#30)
 		add(N, "nds", "DS name", "The name the DS itself is set to, as on a real one: Mario Kart's records, Pictochat, a game's save. 10 characters at most. Both emulators; empty: Dr DraStic in SuperDrastic, Banana in BananaDS.",
 			"", "ds_name", {}, {}, Item::PAGE);
+		add(N, "nds", "SuperDrastic", "SuperDrastic's own settings: its shader, 3D, CPU clock, frame pacing, microphone and low latency, its hotkeys, and its resets.", "", "nds_superdrastic", {}, {}, Item::PAGE);
+		add(N, "nds", "BananaDS", "BananaDS's own settings: its shader, 3D, edge marking and fog, frame pacing, CPU clock, timing, microphone and low latency, its hotkeys, and its reset.", "", "nds_bananads", {}, {}, Item::PAGE);
 		std::vector<std::string> shaderNames, shaderValues;
 		shaderChoices(data, shaderNames, shaderValues);
 		std::string shaderHelpS = "Sharp pixels: every DS pixel an exact square, no blur (4x4 on the RG DS Plus, 2x2 in a frame on the RG DS). Crisp: exact pixel-area scaling. Grid and LCD: the DS's screen grid. Colours: the DS's own, duller colours. CRT: a TV's scanlines. FSR: smooth edges, the heaviest. None: smooth scaling, no GPU work. Your own: .frag files in banana/shaders (letters, digits and . _ + - in the name).";
 		if (board_() == "rgds-plus") shaderHelpS = joinTr(shaderHelpS, PLUS_SHADER_NOTE);
 		const char* shaderHelp = shaderHelpS.c_str();
-		if (emu == "bananads")
+		// the BananaDS page (Nintendo DS > BananaDS): /data/bananads/bananads.conf
 		{
+			const char* BD = "BananaDS";
 			const std::string bds = "/data/bananads/bananads.conf";
-			add(N, "nds", "Shader", shaderHelp, bds, "kms.shader", shaderNames, shaderValues);
-			add(N, "nds", "3D resolution", "2x draws the DS's 3D at twice its size on these panels. 1x is the DS's own, the lightest. 3x and 4x (experimental): three or four times (4x is the RG DS Plus panels' own size), the sharpest and the heaviest: a busy 3D scene can drop below full speed.",
+			add(BD, "nds", "Shader", shaderHelp, bds, "kms.shader", shaderNames, shaderValues);
+			add(BD, "nds", "3D resolution", "2x draws the DS's 3D at twice its size on these panels. 1x is the DS's own, the lightest. 3x and 4x (experimental): three or four times (4x is the RG DS Plus panels' own size), the sharpest and the heaviest: a busy 3D scene can drop below full speed.",
 				bds, "render.scale", { "2x", "1x", "3x (experimental)", "4x (experimental)" }, { "2", "1", "3", "4" });
-			add(N, "nds", "Edge marking", "The outlines some games draw round their 3D models (Zelda, Kirby, many Pokémon battles). Off leaves them out.",
+			add(BD, "nds", "Edge marking", "The outlines some games draw round their 3D models (Zelda, Kirby, many Pokémon battles). Off leaves them out.",
 				bds, "render.edge_marking", { "On", "Off" }, { "on", "off" });
-			add(N, "nds", "Fog", "The distance fog some games draw in 3D. Off leaves it out.", bds, "render.fog", { "On", "Off" }, { "on", "off" });
-			add(N, "nds", "Frame pacing", "Panels runs the DS at the panels' 60 Hz, a new frame every refresh (0.3% fast, the sound matched). DS rate keeps the DS's own 59.83 Hz, a frame shown twice every ~6 s.",
+			add(BD, "nds", "Fog", "The distance fog some games draw in 3D. Off leaves it out.", bds, "render.fog", { "On", "Off" }, { "on", "off" });
+			add(BD, "nds", "Frame pacing", "Panels runs the DS at the panels' 60 Hz, a new frame every refresh (0.3% fast, the sound matched). DS rate keeps the DS's own 59.83 Hz, a frame shown twice every ~6 s.",
 				bds, "kms.pace", { "Panels", "DS rate" }, { "display", "ds" });
 			// experimental: BananaDS's kms.lowlat (its docs/SETTINGS.md): no queue, frames aimed at the vblank
 			// (run-ahead left out in 0.5.0: it never fit a refresh on these handhelds, agent-qa LL2; run-bananads turns a card's into on)
-			add(N, "nds", "Low latency (experimental)", "Experimental. On: no frame queue, each frame started as late as the panels allow: a press shows about two refreshes (35-40 ms) sooner, with the same sound.",
+			add(BD, "nds", "Low latency (experimental)", "Experimental. On: no frame queue, each frame started as late as the panels allow: a press shows about two refreshes (35-40 ms) sooner, with the same sound.",
 				bds, "kms.lowlat", { "Off", "On" }, { "off", "on" });
-			add(N, "nds", "CPU clock", "Saves battery finds the lowest clock each game runs at full speed and remembers it. Always full keeps the top clock.",
+			add(BD, "nds", "CPU clock", "Saves battery finds the lowest clock each game runs at full speed and remembers it. Always full keeps the top clock.",
 				bds, "cpugov", { "Saves battery", "Always full" }, { "on", "off" });
-			add(N, "nds", "Timing", "Accurate is melonDS's own. Fast lets the two CPUs run longer between meeting (about 10% faster), but it can break a game: Golden Sun: Dark Dawn loses its 3D world.",
+			add(BD, "nds", "Timing", "Accurate is melonDS's own. Fast lets the two CPUs run longer between meeting (about 10% faster), but it can break a game: Golden Sun: Dark Dawn loses its 3D world.",
 				bds, "core.slice", { "Accurate", "Fast" }, { "64", "auto" });
-			add(N, "nds", "Microphone", "On: the game hears the real microphone (a blow, a voice; the DS's own games that ask for one). Off: it hears nothing from the mic, and the in-game menu's Blow still works for a game that wants one.",
+			add(BD, "nds", "Microphone", "On: the game hears the real microphone (a blow, a voice; the DS's own games that ask for one). Off: it hears nothing from the mic, and the in-game menu's Blow still works for a game that wants one.",
 				bds, "mic.source", { "On", "Off" }, { "device", "none" });
-			add(N, "nds", "Mic sensitivity", "How far above the room's noise a word or a blow must be to reach the game. Gate off lets the game hear everything the microphone picks up, its own sound from the speaker included.",
+			add(BD, "nds", "Mic sensitivity", "How far above the room's noise a word or a blow must be to reach the game. Gate off lets the game hear everything the microphone picks up, its own sound from the speaker included.",
 				bds, "mic.threshold", { "Medium", "High", "Low", "Gate off" }, { "0.05", "0.02", "0.15", "0" });
-			add(N, "nds", "Reset BananaDS", "BananaDS's settings back to Banana's. Saves, save states and each game's clock stay. Press A twice.",
+			add(BD, "nds", "Hotkeys", "The buttons that do something in a DS game in BananaDS: its menu, quitting, swapping the screens, save states, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_bds", {}, {}, Item::PAGE);
+			add(BD, "nds", "Reset BananaDS", "BananaDS's settings back to Banana's. Saves, save states and each game's clock stay. Press A twice.",
 				"", "nds-reset-bananads", { "" }, { "" }, Item::ACTION);
 		}
-		else
+		// the SuperDrastic page (Nintendo DS > SuperDrastic): superdrastic.conf and DraStic's drastic.cfg
 		{
-			add(N, "nds", "Shader", shaderHelp, sd, "DSFLIP_SHADER", shaderNames, shaderValues);
-			add(N, "nds", "3D resolution", "2x draws the DS's 3D at twice its size on these panels, at full speed with SuperDrastic.", dcfg, "hires_3d", { "2x", "1x" }, { "1", "0" });
-			add(N, "nds", "Threaded 3D", "On draws the DS's 3D beside the game, the faster way. Off draws it in step with the game: for a game whose 3D shows on the wrong screen or a frame late with it on (the Dragon Quest games).",
+			const char* SD = "SuperDrastic";
+			add(SD, "nds", "Shader", shaderHelp, sd, "DSFLIP_SHADER", shaderNames, shaderValues);
+			add(SD, "nds", "3D resolution", "2x draws the DS's 3D at twice its size on these panels, at full speed with SuperDrastic.", dcfg, "hires_3d", { "2x", "1x" }, { "1", "0" });
+			add(SD, "nds", "Threaded 3D", "On draws the DS's 3D beside the game, the faster way. Off draws it in step with the game: for a game whose 3D shows on the wrong screen or a frame late with it on (the Dragon Quest games).",
 				dcfg, "threaded_3d", { "On", "Off" }, { "1", "0" });
-			add(N, "nds", "CPU clock", "Saves battery finds the lowest clock each game runs at full speed and remembers it. Always full keeps the top clock.",
+			add(SD, "nds", "CPU clock", "Saves battery finds the lowest clock each game runs at full speed and remembers it. Always full keeps the top clock.",
 				sd, "DSFLIP_CPUGOV", { "Saves battery", "Always full" }, { "1", "0" });
-			add(N, "nds", "Frame pacing", "Panels runs the DS at the panels' 60 Hz, a new frame every refresh (0.3% fast, the sound matched). DS rate keeps the DS's own 59.83 Hz, a frame shown twice every ~6 s.",
+			add(SD, "nds", "Frame pacing", "Panels runs the DS at the panels' 60 Hz, a new frame every refresh (0.3% fast, the sound matched). DS rate keeps the DS's own 59.83 Hz, a frame shown twice every ~6 s.",
 				sd, "DSFLIP_PACE", { "Panels", "DS rate" }, { "panels", "ds" });
 			// (Off first: SuperDrastic's own default, as in 0.4.2; its scale is not BananaDS's)
-			add(N, "nds", "Microphone", "How loud a word or a blow must be to reach the game. Off: the game hears nothing from the mic, and the in-game menu's Blow still works for a game that wants one.",
+			add(SD, "nds", "Microphone", "How loud a word or a blow must be to reach the game. Off: the game hears nothing from the mic, and the in-game menu's Blow still works for a game that wants one.",
 				sd, "DSHOOK_MIC_THRESH", { "Off", "Medium", "High", "Low" }, { "0", "0.15", "0.03", "0.3" });
 			// experimental: SuperDrastic's DSFLIP_LOWLAT (run-drastic): no queue, each frame at the next vblank, DraStic held
-			add(N, "nds", "Low latency (experimental)", "Experimental. On: no frame queue: each frame goes to the panels at the next refresh it can make, so a press shows about a refresh and a half (20-25 ms) sooner, the sound a little sooner too. Uneven frames (2x, heavy scenes) can show as small stutters the queue would hide, more on the RG DS Plus.",
+			add(SD, "nds", "Low latency (experimental)", "Experimental. On: no frame queue: each frame goes to the panels at the next refresh it can make, so a press shows about a refresh and a half (20-25 ms) sooner, the sound a little sooner too. Uneven frames (2x, heavy scenes) can show as small stutters the queue would hide, more on the RG DS Plus.",
 				sd, "DSFLIP_LOWLAT", { "Off", "On" }, { "0", "1" });
-			add(N, "nds", "Reset buttons", "DraStic's buttons back to Banana's, for a button setup gone wrong in DraStic's menu: the pad as printed, F the menu, and L2, R2, L3 and R3 as Nintendo DS > Buttons has them. (HOME always opens the menu.) Press A twice.",
+			add(SD, "nds", "Hotkeys", "The buttons that do something in a DS game in SuperDrastic: its menu, quitting, swapping the screens, save states, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_sd", {}, {}, Item::PAGE);
+			add(SD, "nds", "Reset buttons", "DraStic's buttons back to Banana's, for a button setup gone wrong in DraStic's menu: the pad as printed, F the menu, and L2, R2, L3 and R3 as Nintendo DS > Buttons has them. (HOME always opens the menu.) Press A twice.",
 				"", "nds-reset-buttons", { "" }, { "" }, Item::ACTION);
-			add(N, "nds", "Reset DraStic", "All of DraStic's and SuperDrastic's settings back to Banana's, the buttons too. Saves, save states, cheats and the DS's name and birthday stay. Press A twice.",
+			add(SD, "nds", "Reset DraStic", "All of DraStic's and SuperDrastic's settings back to Banana's, the buttons too. Saves, save states, cheats and the DS's name and birthday stay. Press A twice.",
 				"", "nds-reset-drastic", { "" }, { "" }, Item::ACTION);
 		}
 		const char* O = "Other systems";
@@ -682,7 +685,7 @@ namespace banana
 			add(S, "gear", "Credits", "The people who made this version of BananaOS: development, translations, testing and thanks. A opens the list.", "", "credits", {}, {}, Item::PAGE);
 		add(S, "gear", "Restart", "Restarts the handheld. Press A twice.", "", "reboot", { "" }, { "" }, Item::ACTION);
 		add(S, "gear", "Shut down", "Turns the handheld off. Press A twice. (Or hold the power button.)", "", "poweroff", { "" }, { "" }, Item::ACTION);
-		add(S, "gear", "Hotkeys", "The buttons that do something everywhere and in the menu. Each emulator's own: Nintendo DS > SuperDrastic hotkeys and BananaDS hotkeys, Other systems > RetroArch hotkeys.", "", "hotkeys", {}, {}, Item::PAGE);
+		add(S, "gear", "Hotkeys", "The buttons that do something everywhere and in the menu. Each emulator's own: Nintendo DS > SuperDrastic > Hotkeys and BananaDS > Hotkeys, Other systems > RetroArch hotkeys.", "", "hotkeys", {}, {}, Item::PAGE);
 		// the hotkey pages: System > Hotkeys (everywhere and the menu) and one for each emulator (from Nintendo DS and
 		// Other systems). What each does, from bananad, the menu, SuperDrastic's drastic.cfg and menu, BananaDS's menu and
 		// RetroArch's joypad profile (retrogame_joypad.cfg: F is its hotkey). Rows to read: the key "hk" and what it does,
@@ -827,6 +830,12 @@ namespace banana
 			for (auto& s : sy) add(HSS, "phone", s.name, "Sync: its games and saves sync with the home server. Skip: they stay as they are on this handheld.", menu, (std::string("homesync.") + s.id).c_str(), { "Sync", "Skip" }, { "on", "off" });
 		}
 		addShelfRows();
+		// the sections in the order they first come, those with a tile first (the grid is the first groups) and each
+		// section's rows together: a subpage's rows are added beside the row that opens it, wherever that is
+		std::map<std::string, int> rank;
+		for (auto& it : items)
+			if (!rank.count(it.section)) rank[it.section] = (tileless(it.section) ? 100000 : 0) + (int)rank.size();
+		std::stable_sort(items.begin(), items.end(), [&](const Item& a, const Item& b) { return rank[a.section] < rank[b.section]; });
 	}
 
 	void Settings::load(Item& it)
@@ -1126,6 +1135,8 @@ namespace banana
 			std::vector<Subpage> v = {
 				{ "shelves", "Shown systems" },
 				{ "hotkeys", "Hotkeys" },
+				{ "nds_superdrastic", "SuperDrastic" },
+				{ "nds_bananads", "BananaDS" },
 				{ "hotkeys_sd", "SuperDrastic hotkeys" },
 				{ "hotkeys_bds", "BananaDS hotkeys" },
 				{ "hotkeys_ra", "RetroArch hotkeys" },
@@ -1271,16 +1282,6 @@ namespace banana
 		}
 		it.at = at;
 		save(it);
-		if (it.key == "nds_emulator")
-		{
-			// the other emulator's own settings in the list, the cursor staying on Emulator
-			items.clear();
-			build();
-			for (auto& x : items) load(x);
-			for (size_t i = 0; i < items.size(); i++) if (items[i].key == "nds_emulator") sel = (int)i;
-			armed = -1;
-			return CHANGED;
-		}
 		if (it.key == "language") return LANGUAGE;	// (saved above; the menu starts again in it)
 		if (it.key.compare(0, 6, "shelf.") == 0) return SHELVES;	// (the home row read again)
 		if (it.key == "theme")
@@ -4987,7 +4988,7 @@ namespace banana
 		return NONE;
 	}
 
-	static const char* GAME_SHADER_HELP = "The picture's shader for this game only, in either emulator; the others follow Settings > Nintendo DS > Shader. None scales smoothly and costs no GPU work.";
+	static const char* GAME_SHADER_HELP = "The picture's shader for this game only, in either emulator; the others follow the Shader on the emulator's page in Settings > Nintendo DS. None scales smoothly and costs no GPU work.";
 	// a game page row's help (renderGame's top panel)
 	std::string Settings::gameHelpOf(int row)
 	{
@@ -4998,9 +4999,9 @@ namespace banana
 				: row == PG_SHADER ? (plus ? joinTr(GAME_SHADER_HELP, PLUS_SHADER_NOTE) : std::string(GAME_SHADER_HELP))
 				: row == PG_3D ? "SuperDrastic (DraStic) only. On draws the DS's 3D beside the game, the faster way; Off draws it in step with "
 				  "the game, for a game whose 3D shows on the wrong screen or a frame late (the Dragon Quest games). The others follow "
-				  "Settings > Nintendo DS > Threaded 3D."
+				  "Settings > Nintendo DS > SuperDrastic > Threaded 3D."
 				: row == PG_RES ? "BananaDS only. The size the DS's 3D is drawn at for this game: 1x the DS's own, 2x twice, 3x and 4x (experimental) three "
-				  "and four times, the sharpest and the heaviest (a busy 3D scene can drop below full speed). The others follow Settings > Nintendo DS > 3D resolution."
+				  "and four times, the sharpest and the heaviest (a busy 3D scene can drop below full speed). The others follow Settings > Nintendo DS > BananaDS > 3D resolution."
 				: row == PG_MIC ? "How loud a word or a blow must be to reach this game, in either emulator: High hears a quiet voice, Low "
 				  "only a loud one, Off none. For a game that needs the microphone (Nintendogs) or one it bothers."
 				: row == PG_NAME ? "The name the menu shows for this game. A types it; an empty one goes back to the scraped name. Kept in "

@@ -126,9 +126,16 @@ grep -q 'Majirefy = ' "$HERE/../system/rootfs/etc/banana/credits.txt" || { echo 
 # System > Hotkeys (its last row: up from the first) opens the list of hotkeys, B back to System on its row
 ux_run hotkeys "home 0; press start; press r; press r; press r; press r; press r; press a; press up; press a; wait 400; shot ux-hotkeys; press b; wait 400; shot ux-hotkeys-back"
 ux_lt 1000 "$(ux_diff "$OUT/$size-ux-hotkeys-bot.png" "$OUT/$size-ux-hotkeys-back-bot.png")" || { echo "FAIL $size: Hotkeys didn't open"; fail=1; }
-# Nintendo DS > SuperDrastic hotkeys (its fifth row: after Buttons) opens that emulator's own hotkeys, B back on its row
-ux_run hotkeys-sd "home 0; press start; press r; press r; press a; press down; press down; press down; press down; press a; wait 400; shot ux-hotkeys-sd; press b; wait 400; shot ux-hotkeys-sd-back"
-ux_lt 1000 "$(ux_diff "$OUT/$size-ux-hotkeys-sd-bot.png" "$OUT/$size-ux-hotkeys-sd-back-bot.png")" || { echo "FAIL $size: SuperDrastic hotkeys didn't open"; fail=1; }
+# Nintendo DS > SuperDrastic (its sixth row) opens that emulator's own page, and Hotkeys there (third from its end) its
+# hotkeys; B back on that row, B again back on SuperDrastic in Nintendo DS
+ux_run hotkeys-sd "home 0; press start; press r; press r; press a; press down; press down; press down; press down; press down; wait 400; shot ux-ds-row; press a; press up; press up; press up; wait 400; shot ux-sd-page; press a; wait 400; shot ux-hotkeys-sd; press b; wait 400; shot ux-hotkeys-sd-back; press b; wait 400; shot ux-sd-back"
+ux_lt 1000 "$(ux_diff "$OUT/$size-ux-ds-row-bot.png" "$OUT/$size-ux-sd-page-bot.png")" || { echo "FAIL $size: Nintendo DS > SuperDrastic didn't open"; fail=1; }
+ux_lt 1000 "$(ux_diff "$OUT/$size-ux-hotkeys-sd-bot.png" "$OUT/$size-ux-hotkeys-sd-back-bot.png")" || { echo "FAIL $size: SuperDrastic > Hotkeys didn't open"; fail=1; }
+# (the list's header, its title and "row / rows" (x 18-622, y 16-66), the same: the same page and row, wherever it scrolled)
+ux_head() { convert "$1" -crop "$(awk -v k=$ux_k 'BEGIN { printf "%dx%d+%d+%d", 604 * k, 50 * k, 18 * k, 16 * k }')" +repage "$2"; }
+for s in sd-page hotkeys-sd-back ds-row sd-back; do ux_head "$OUT/$size-ux-$s-bot.png" "$OUT/$size-ux-$s-head.png"; done
+[ "$(ux_diff "$OUT/$size-ux-sd-page-head.png" "$OUT/$size-ux-hotkeys-sd-back-head.png")" = 0 ] || { echo "FAIL $size: B from SuperDrastic's hotkeys wasn't back on its Hotkeys row"; fail=1; }
+[ "$(ux_diff "$OUT/$size-ux-ds-row-head.png" "$OUT/$size-ux-sd-back-head.png")" = 0 ] || { echo "FAIL $size: B from SuperDrastic wasn't back on its row in Nintendo DS"; fail=1; }
 
 # the wordmark's B (tools/make-logo.py's B_GLYPH): square corners on the left, so it doesn't read as a G; in the boot
 # animation's mask (word.png) its top-left and bottom-left pixels are set
