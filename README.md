@@ -189,7 +189,7 @@ Press F for the in-game menu; the Anbernic button also opens it. In DS games, bo
 
 ## More systems, apps and ports
 
-- RetroArch systems: GBA, Game Boy, NES, SNES, Mega Drive, PlayStation and N64, on one screen. The other screen holds touch tiles for save, load, menu, fast-forward and quit, or a game companion. Shaders and a screen border are included (Settings > Other systems), and each system can use its own emulator.
+- RetroArch systems: GBA, Game Boy, NES, SNES, Mega Drive, PlayStation and N64, on one screen. The other screen holds touch tiles for save, load, menu, fast-forward and quit, or a game companion. Shaders and a screen border are included (Settings > Other systems), and each system can use its own emulator. R2 fast-forwards in the 2D systems' games, and Settings › Other systems › Buttons gives L2, R2, L3 and R3 other jobs.
 - Companions on the second screen: the Pokémon companion for Ruby, Sapphire, Emerald, FireRed, LeafGreen and Pokémon Unbound, and game companions for 500+ GBA games (off by default). More in [docs/COMPANIONS.md](docs/COMPANIONS.md).
 - PortMaster and PICO-8: PortMaster with its ports, as on ROCKNIX; PICO-8 through fake-08, or the official PICO-8 when it is on the card.
 - App Store: install and update Döda Kvarter, Poketool (a Pokémon bank and save editor) and eReaderDS from the menu.

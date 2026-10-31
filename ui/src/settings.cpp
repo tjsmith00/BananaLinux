@@ -615,6 +615,8 @@ namespace banana
 				: "The emulator (RetroArch core) for this system's games: the first is BananaOS's own. Cores downloaded with RetroArch's Core Downloader (its Online Updater) are listed here too.";
 			add(O, "gamepad", sys.label, help, menu, (std::string("core.") + sys.id).c_str(), names, values);
 		}
+		// L2, R2, L3 and R3 alone in RetroArch's games (the page below; run-retroarch, bananad)
+		add(O, "gamepad", "Buttons", "What L2, R2, L3 and R3 do alone in a game: the game's own button, or fast-forward, save or load a state, RetroArch's menu, pause, a screenshot, nothing. Not PlayStation and N64, whose games use them. F + R saves and F + L loads a state, as on the DS.", "", "ra_buttons", {}, {}, Item::PAGE);
 		add(O, "gamepad", "RetroArch hotkeys", "F + a button in a game: X the menu, Start quits, L and R load and save a state, Y the frame counter, L2 rewind, R2 fast forward. Off: only F + X and F + Start, the two needed to get out, and none bound in RetroArch's own menu either.",
 			menu, "ra_hotkeys", { "On", "Off" }, { "on", "off" });
 		add(O, "gamepad", "Reset RetroArch", "RetroArch's settings back to Banana's: for a button bound away in RetroArch's menu (an A that does something else, a hotkey on a face button). Its controls, remaps and overrides go to retroarch/backup-<date> on the card. Saves, states, the RetroAchievements account and these settings stay. Press A twice.",
@@ -705,6 +707,7 @@ namespace banana
 				{ "RetroArch: F + R / F + L", "Save / load state", "The other systems (RetroArch): the current state slot." },
 				{ "RetroArch: F + R2", "Fast-forward", "The other systems (RetroArch): on, and off again." },
 				{ "RetroArch: F + L2", "Rewind", "The other systems (RetroArch): held, the game runs backwards." },
+				{ "RetroArch: R2", "Fast-forward", "GBA, Game Boy, NES, SNES and Mega Drive games: on, and off again. Settings > Other systems > Buttons gives L2, R2, L3 and R3 other jobs." },
 				{ "RetroArch: F + Y", "Frame rate", "The other systems (RetroArch): shown in a corner, or not." },
 			};
 			for (auto& r : rows) add(HK, "gear", r.keys, r.help, "", "hk", { r.what }, { "" }, Item::INFO);
@@ -726,6 +729,19 @@ namespace banana
 			add(DB, "nds", "R3", helpR3.c_str(), menu, "nds_btn_r3", names, values);
 			add(DB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 swaps the screens, R2 fast-forwards, L3 blows on the mic, R3 does nothing. Press A twice.",
 				"", "nds-reset-ds-buttons", { "" }, { "" }, Item::ACTION);
+		}
+		// the other systems' buttons page (Other systems > Buttons): L2, R2, L3 and R3's jobs in banana/settings.conf
+		// (ra_btn_*, defaults in settings_defaults.cpp), for RetroArch's games but PlayStation's and N64's
+		{
+			const char* RB = "Other systems buttons";
+			const std::vector<std::string> names = { "Game's own", "Fast-forward", "Save state", "Load state", "Menu", "Pause", "Screenshot", "Nothing" };
+			const std::vector<std::string> values = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none" };
+			const char* help = "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own). Game's own: the game's button, as before. Fast-forward: on, and off again (as F + R2). Save and load state: the current slot (as F + R and F + L). Menu: RetroArch's (as F + X). With F held, the button is RetroArch's hotkey, as on the Hotkeys page.";
+			add(RB, "gamepad", "L2", help, menu, "ra_btn_l2", names, values);
+			add(RB, "gamepad", "R2", help, menu, "ra_btn_r2", names, values);
+			add(RB, "gamepad", "L3", help, menu, "ra_btn_l3", names, values);
+			const std::string helpR3 = std::string(help) + " (The RG DS Plus has no R3.)";
+			add(RB, "gamepad", "R3", helpR3.c_str(), menu, "ra_btn_r3", names, values);
 		}
 		const char* PW = "Power";
 		add(PW, "moon", "Sleep", "The handheld sleeps, as with a press of the power button; a game running is paused. Press the power button to wake it.", "", "sleep", { "" }, { "" }, Item::ACTION);
@@ -1059,6 +1075,7 @@ namespace banana
 			if (it.key == "shelves") { openSection("Shown systems"); return MOVED; }
 			if (it.key == "hotkeys") { openSection("Hotkeys"); return MOVED; }
 			if (it.key == "ds_buttons") { message.clear(); openSection("DS buttons"); return MOVED; }
+			if (it.key == "ra_buttons") { message.clear(); openSection("Other systems buttons"); return MOVED; }
 			if (it.key == "homesync") { message.clear(); openSection("Home server"); return MOVED; }
 			if (it.key == "hs_systems") { openSection("Home server systems"); return MOVED; }
 			if (it.key == "hs_server") { startPairing(); return MOVED; }
@@ -1305,7 +1322,7 @@ namespace banana
 		case Key::RIGHT: return items[sel].kind == Item::ACTION || items[sel].key == "scrape" || items[sel].key == "hs_sync" ? NONE : change(1);
 		case Key::A: if (items[sel].key == "theme") { openThemes(); return MOVED; } return change(1);	// (the gallery)
 		case Key::B:
-			if (groups[g] == "Shown systems" || groups[g] == "Hotkeys" || groups[g] == "DS buttons" || groups[g] == "Home server" || groups[g] == "Home server systems") { std::string from = groups[g] == "Hotkeys" ? "hotkeys" : groups[g] == "DS buttons" ? "ds_buttons" : groups[g] == "Home server" ? "homesync" : groups[g] == "Home server systems" ? "hs_systems" : "shelves"; message.clear(); for (size_t i = 0; i < items.size(); i++) if (items[i].key == from) sel = (int)i; top = std::max(groupStart(groupOf(sel)), sel - ROWS + 1); armed = -1; return MOVED; }
+			if (groups[g] == "Shown systems" || groups[g] == "Hotkeys" || groups[g] == "DS buttons" || groups[g] == "Other systems buttons" || groups[g] == "Home server" || groups[g] == "Home server systems") { std::string from = groups[g] == "Hotkeys" ? "hotkeys" : groups[g] == "DS buttons" ? "ds_buttons" : groups[g] == "Other systems buttons" ? "ra_buttons" : groups[g] == "Home server" ? "homesync" : groups[g] == "Home server systems" ? "hs_systems" : "shelves"; message.clear(); for (size_t i = 0; i < items.size(); i++) if (items[i].key == from) sel = (int)i; top = std::max(groupStart(groupOf(sel)), sel - ROWS + 1); armed = -1; return MOVED; }
 			inGroups = true; gsel = g < gridCount() ? g : 0; armed = -1; return MOVED;	// back to the groups
 		case Key::START: mOpen = false; return CLOSED;
 		default: return NONE;
@@ -1313,7 +1330,7 @@ namespace banana
 	}
 
 	// the sections with no tile on the groups' grid (after the others): Power (Y there), Shown systems (a row's page)
-	static bool tileless(const std::string& section) { return section == "Power" || section == "Shown systems" || section == "Hotkeys" || section == "DS buttons" || section == "Home server" || section == "Home server systems"; }
+	static bool tileless(const std::string& section) { return section == "Power" || section == "Shown systems" || section == "Hotkeys" || section == "DS buttons" || section == "Other systems buttons" || section == "Home server" || section == "Home server systems"; }
 	int Settings::gridCount() const
 	{
 		int n = 0;
