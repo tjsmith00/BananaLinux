@@ -515,7 +515,7 @@ namespace banana
 		// with SuperDrastic's Gengis Engine, always (run-drastic, run-bananads).
 		const char* N = "Nintendo DS";
 		const std::string emu = getConfValue(menu, "nds_emulator", getConfValue("/etc/banana/settings.conf", "nds_emulator", "superdrastic"));
-		add(N, "nds", "Emulator", "SuperDrastic: DraStic straight onto both panels, with its own governor. BananaDS: Banana's own emulator (melonDS's core). Both draw 3D with the Gengis Engine at 2x and have their menu on L3; each keeps its own settings below. X on a game in the library picks one for that game alone.",
+		add(N, "nds", "Emulator", "SuperDrastic: DraStic straight onto both panels, with its own governor. BananaDS: Banana's own emulator (melonDS's core). Both draw 3D with the Gengis Engine at 2x and have their menu on F; each keeps its own settings below. X on a game in the library picks one for that game alone.",
 			menu, "nds_emulator", { "SuperDrastic", "BananaDS" }, { "superdrastic", "bananads" });
 		add(N, "nds", "Quick resume", "On: quitting keeps where you are, and the game goes on from there next time (a shutdown too). Off: quitting ends the game, which starts from its title next time.",
 			menu, "quick_resume", { "Off", "On" }, { "off", "on" });
@@ -695,8 +695,8 @@ namespace banana
 				{ "SuperDrastic: R3", "Fast-forward", "DS games in SuperDrastic: held, the game runs as fast as it can." },
 				{ "BananaDS: F / HOME", "Its menu", "DS games in BananaDS: save, load, quick settings, achievements, quit." },
 				{ "BananaDS: R2", "Fast-forward", "DS games in BananaDS: held, the game runs as fast as it can. Settings > Nintendo DS > Buttons moves it." },
-				{ "BananaDS: R3", "Blow on the mic", "DS games in BananaDS: held, the game hears a blow (candles, pinwheels, Nintendogs), the microphone on or off. Settings > Nintendo DS > Buttons moves it." },
-				{ "BananaDS: L3", "Swap the screens", "DS games in BananaDS, as F + SELECT. Settings > Nintendo DS > Buttons gives it another job." },
+				{ "BananaDS: L3", "Blow on the mic", "DS games in BananaDS: held, the game hears a blow (candles, pinwheels, Nintendogs), the microphone on or off. Settings > Nintendo DS > Buttons moves it." },
+				{ "BananaDS: R3", "Swap the screens", "DS games in BananaDS (the RG DS: the RG DS Plus has no R3), as F + SELECT. Settings > Nintendo DS > Buttons gives it another job." },
 				{ "BananaDS: F + R", "Save to slot 1", "DS games in BananaDS." },
 				{ "BananaDS: F + L", "Load slot 1", "DS games in BananaDS." },
 				{ "BananaDS: F + SELECT", "Swap the screens", "DS games in BananaDS: the DS's top screen on the bottom panel and its bottom screen on the top one (touch follows it: the RG DS's top touchscreen; on the RG DS Plus no touch while swapped), and back. Kept for each game." },
@@ -724,7 +724,7 @@ namespace banana
 				"swap", "save", "load", "ffhold", "ff", "screenshot", "blow", "menu", "none" };
 			// (only the buttons the DS hasn't: the others are the DS's own, as printed; BananaDS takes input.<any button>)
 			struct { const char* label; const char* key; const char* def; } btn[] = {
-				{ "L2", "input.l2", "none" }, { "R2", "input.r2", "ffhold" }, { "L3", "input.l3", "swap" }, { "R3", "input.r3", "blow" } };
+				{ "L2", "input.l2", "none" }, { "R2", "input.r2", "ffhold" }, { "L3", "input.l3", "blow" }, { "R3", "input.r3", "swap" } };	// (R3 swaps: the RG DS Plus has none, and F + SELECT does it too)
 			for (auto& b : btn)
 			{
 				// (the default first: a card with no line for it shows it)
@@ -734,7 +734,7 @@ namespace banana
 				add(BB, "nds", b.label, "In a DS game in BananaDS: a DS button, or a job. Save and load use slot 1. Blow on the mic: the game hears a blow while it is held, the microphone on or off. F + this button and HOME keep their own (the Hotkeys page).",
 					"/data/bananads/bananads.conf", b.key, n, v);
 			}
-			add(BB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 nothing, R2 fast-forward while held, L3 swaps the screens, R3 blows on the mic. Press A twice.",
+			add(BB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 nothing, R2 fast-forward while held, L3 blows on the mic, R3 swaps the screens. Press A twice.",
 				"", "nds-reset-bananads-buttons", { "" }, { "" }, Item::ACTION);
 		}
 		const char* PW = "Power";

@@ -115,7 +115,7 @@ handhelds themselves.
   (with the resume state), F + R saves slot 1, F + L loads it. L2, R2, L3 and R3 do what their `input.<button>` says
   (Settings > Nintendo DS > Buttons; BananaDS takes it for any button, set by hand): a DS button, or a job (the menu, swap the screens, save or load slot 1,
   fast-forward held or on/off, a screenshot, a blow on the mic while held, nothing). The pad as printed by default,
-  R2 fast-forward while held, L3 swaps the screens and R3 blows (`buildroot/patches/bananads/0010-*`, #55, #52).
+  R2 fast-forward while held, L3 blows and R3 swaps the screens (the RG DS Plus has no R3) (`buildroot/patches/bananads/0010-*`, #55, #52).
 - **In-game menu**: F or HOME (or a button set to Menu) pauses the game and opens SuperDrastic's menu, in BananaOS's colours, on both panels: Resume,
   Save and Load (8 slots with their pictures; a load can be undone), Quick settings (volume and brightness the way
   bananad keeps them, the microphone's meter and a blow), Restart game, Quit game. Touch works on it too.
