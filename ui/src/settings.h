@@ -418,7 +418,7 @@ namespace banana
 		void typeText(const std::string& t) { if (page == KEYBOARD) pw += t; }	// (the headless test: text typed at once)
 	private:
 
-		// Bluetooth (Settings > Network > Bluetooth devices): the devices known and found, paired, connected, through
+		// Bluetooth (Settings > Network > Bluetooth > Bluetooth devices): the devices known and found, paired, connected, through
 		// the bluetooth script (BANANA_BLUETOOTH: the test's stand-in)
 		std::string btTool;
 		wifi::Job btListJob, btScanJob, btActJob;

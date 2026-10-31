@@ -649,16 +649,26 @@ namespace banana
 		const char* W = "Network";
 		add(W, "phone", "Wi-Fi", "", menu, "wifi", { "On", "Off" }, { "on", "off" });
 		add(W, "phone", "Network", "The networks around: A on one joins it, with a password typed on the keyboard here (or by touch).", "", "network", {}, {}, Item::PAGE);
-		add(W, "phone", "Bluetooth", "Controllers, headphones and speakers. Off (the default) leaves the radio unpowered, which saves battery; Bluetooth devices, below, pairs them. While Bluetooth headphones are connected the sound plays on them.",
-			menu, "bluetooth", { "Off", "On" }, { "off", "on" });
-		add(W, "phone", "Bluetooth devices", "The devices paired and the ones around: A pairs with one in pairing mode, connects a paired one or disconnects it.", "", "bt_devices", {}, {}, Item::PAGE);
-		add(W, "phone", "Bluetooth audio", "Low latency: aptX, or SBC on headphones without it: the sound as close to the picture as Bluetooth gets, for games. Best quality: LDAC, aptX HD or a richer SBC when the headphones have them, a little later (tens of ms) and a little more battery. Headphones connected now reconnect to take the change.",
-			menu, "bt_audio", { "Low latency", "Best quality" }, { "latency", "quality" });
-		add(W, "phone", "File sharing", "", menu, "share", { "Off", "On" }, { "off", "on" });
-		add(W, "phone", "Sharing login", "Name and password: the card asks for the name and password below (Windows refuses a share with no password). Guest: anyone on the network opens it with none; only on a network you trust.",
-			menu, "share_login", { "Name and password", "Guest" }, { "password", "guest" });
-		add(W, "phone", "Sharing name and password", "", "", "share_account", {}, {}, Item::PAGE);
-		add(W, "phone", "SSH", "", menu, "ssh", { "Off", "On" }, { "off", "on" });
+		add(W, "phone", "Bluetooth", "Controllers, headphones and speakers: Bluetooth on or off, the devices paired and around, and how the sound plays on headphones.", "", "net_bt", {}, {}, Item::PAGE);
+		add(W, "phone", "File sharing", "The card on your network: file sharing on or off, its login and name and password, and SSH.", "", "net_share", {}, {}, Item::PAGE);
+		// the Bluetooth page (Network > Bluetooth)
+		{
+			const char* BT = "Bluetooth";
+			add(BT, "phone", "Bluetooth", "Controllers, headphones and speakers. Off (the default) leaves the radio unpowered, which saves battery; Bluetooth devices, below, pairs them. While Bluetooth headphones are connected the sound plays on them.",
+				menu, "bluetooth", { "Off", "On" }, { "off", "on" });
+			add(BT, "phone", "Bluetooth devices", "The devices paired and the ones around: A pairs with one in pairing mode, connects a paired one or disconnects it.", "", "bt_devices", {}, {}, Item::PAGE);
+			add(BT, "phone", "Bluetooth audio", "Low latency: aptX, or SBC on headphones without it: the sound as close to the picture as Bluetooth gets, for games. Best quality: LDAC, aptX HD or a richer SBC when the headphones have them, a little later (tens of ms) and a little more battery. Headphones connected now reconnect to take the change.",
+				menu, "bt_audio", { "Low latency", "Best quality" }, { "latency", "quality" });
+		}
+		// the File sharing page (Network > File sharing), SSH with it
+		{
+			const char* FS = "File sharing";
+			add(FS, "phone", "File sharing", "", menu, "share", { "Off", "On" }, { "off", "on" });
+			add(FS, "phone", "Sharing login", "Name and password: the card asks for the name and password below (Windows refuses a share with no password). Guest: anyone on the network opens it with none; only on a network you trust.",
+				menu, "share_login", { "Name and password", "Guest" }, { "password", "guest" });
+			add(FS, "phone", "Sharing name and password", "", "", "share_account", {}, {}, Item::PAGE);
+			add(FS, "phone", "SSH", "", menu, "ssh", { "Off", "On" }, { "off", "on" });
+		}
 		add(W, "phone", "Home server", "Your games, their box art and your saves from a server at home: Romhost (Homeport's ROM library) or RomM. A opens its page: pairing, Sync now, and what syncs.",
 			"", "homesync", {}, {}, Item::PAGE);
 		const char* S = "System";
@@ -1160,6 +1170,8 @@ namespace banana
 				{ "ra_second", "Second screen" },
 				{ "ra_picture", "Picture & sound" },
 				{ "ra_cores", "Emulators" },
+				{ "net_bt", "Bluetooth" },
+				{ "net_share", "File sharing" },
 				{ "ds_buttons", "DS buttons" },
 				{ "ra_buttons", "Other systems buttons" },
 				{ "homesync", "Home server" },
