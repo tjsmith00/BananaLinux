@@ -182,7 +182,7 @@ Both put each DS screen on its own display and include an in-game menu for save 
 | Microphone | A "blow" key | The real microphone |
 | Extras | Shaders, save slots with both screens as their picture | Cheats for 4,000+ games, fast-forward (R2), FPS counter, screenshots (F + L2), save slots with both screens as their picture |
 
-Press F for the in-game menu. The Anbernic button also opens it, and so does L3 in SuperDrastic; in BananaDS, L3 swaps the screens, and Settings › Nintendo DS › Buttons gives any button another job. F + SELECT swaps the two screens. More in [docs/EMULATORS.md](docs/EMULATORS.md), the contract between the menu and any emulator.
+Press F for the in-game menu. The Anbernic button also opens it, and so does L3 in SuperDrastic; in BananaDS, L3 swaps the screens, and Settings › Nintendo DS › Buttons gives L2, R2, L3 and R3 other jobs. F + SELECT swaps the two screens. More in [docs/EMULATORS.md](docs/EMULATORS.md), the contract between the menu and any emulator.
 
 <a id="and-the-rest"></a>
 <img src="docs/img/readme/h-systems.png" width="100%" alt="">
