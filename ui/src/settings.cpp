@@ -1060,6 +1060,28 @@ namespace banana
 		if (it.key == "sd2_roms") spawn("/usr/libexec/banana/sd2", "scan");
 	}
 
+	// the subpages: a section with no tile on the groups' grid, opened by A (or RIGHT) on a PAGE row of another
+	// section (its key), B there going back to that row. A new subpage is a line here and its rows in build()
+	struct Subpage { const char* key; const char* section; };
+	static const Subpage SUBPAGES[] = {
+		{ "shelves", "Shown systems" },
+		{ "hotkeys", "Hotkeys" },
+		{ "ds_buttons", "DS buttons" },
+		{ "ra_buttons", "Other systems buttons" },
+		{ "homesync", "Home server" },
+		{ "hs_systems", "Home server systems" },
+	};
+	static const Subpage* subpageFrom(const std::string& key)
+	{
+		for (auto& s : SUBPAGES) if (key == s.key) return &s;
+		return nullptr;
+	}
+	static const Subpage* subpageOf(const std::string& section)
+	{
+		for (auto& s : SUBPAGES) if (section == s.section) return &s;
+		return nullptr;
+	}
+
 	Settings::Result Settings::change(int dir)
 	{
 		Item& it = items[sel];
@@ -1072,12 +1094,7 @@ namespace banana
 			if (it.key == "share_account") { startEntry(ENTRY_SMB_USER, "File sharing", "Name", LIST, shareUser()); return MOVED; }
 			if (it.key == "ds_name") { startEntry(ENTRY_DS_NAME, "The DS's name", "10 characters at most", LIST, dsName()); return MOVED; }
 			if (it.key == "bt_devices") { openBluetooth(); return MOVED; }
-			if (it.key == "shelves") { openSection("Shown systems"); return MOVED; }
-			if (it.key == "hotkeys") { openSection("Hotkeys"); return MOVED; }
-			if (it.key == "ds_buttons") { message.clear(); openSection("DS buttons"); return MOVED; }
-			if (it.key == "ra_buttons") { message.clear(); openSection("Other systems buttons"); return MOVED; }
-			if (it.key == "homesync") { message.clear(); openSection("Home server"); return MOVED; }
-			if (it.key == "hs_systems") { openSection("Home server systems"); return MOVED; }
+			if (const Subpage* s = subpageFrom(it.key)) { message.clear(); openSection(s->section); return MOVED; }
 			if (it.key == "hs_server") { startPairing(); return MOVED; }
 			if (it.key == "hs_sync") { if (syncing()) stopSync(); else startSync(); return MOVED; }
 			if (it.key == "hs_pick") { openPickGames(); return MOVED; }
@@ -1322,15 +1339,22 @@ namespace banana
 		case Key::RIGHT: return items[sel].kind == Item::ACTION || items[sel].key == "scrape" || items[sel].key == "hs_sync" ? NONE : change(1);
 		case Key::A: if (items[sel].key == "theme") { openThemes(); return MOVED; } return change(1);	// (the gallery)
 		case Key::B:
-			if (groups[g] == "Shown systems" || groups[g] == "Hotkeys" || groups[g] == "DS buttons" || groups[g] == "Other systems buttons" || groups[g] == "Home server" || groups[g] == "Home server systems") { std::string from = groups[g] == "Hotkeys" ? "hotkeys" : groups[g] == "DS buttons" ? "ds_buttons" : groups[g] == "Other systems buttons" ? "ra_buttons" : groups[g] == "Home server" ? "homesync" : groups[g] == "Home server systems" ? "hs_systems" : "shelves"; message.clear(); for (size_t i = 0; i < items.size(); i++) if (items[i].key == from) sel = (int)i; top = std::max(groupStart(groupOf(sel)), sel - ROWS + 1); armed = -1; return MOVED; }
+			if (const Subpage* s = subpageOf(groups[g]))	// a subpage: back to the row that opened it
+			{
+				message.clear();
+				for (size_t i = 0; i < items.size(); i++) if (items[i].key == s->key) sel = (int)i;
+				top = std::max(groupStart(groupOf(sel)), sel - ROWS + 1);
+				armed = -1;
+				return MOVED;
+			}
 			inGroups = true; gsel = g < gridCount() ? g : 0; armed = -1; return MOVED;	// back to the groups
 		case Key::START: mOpen = false; return CLOSED;
 		default: return NONE;
 		}
 	}
 
-	// the sections with no tile on the groups' grid (after the others): Power (Y there), Shown systems (a row's page)
-	static bool tileless(const std::string& section) { return section == "Power" || section == "Shown systems" || section == "Hotkeys" || section == "DS buttons" || section == "Other systems buttons" || section == "Home server" || section == "Home server systems"; }
+	// the sections with no tile on the groups' grid (after the others): Power (Y there) and the subpages (SUBPAGES)
+	static bool tileless(const std::string& section) { return section == "Power" || subpageOf(section); }
 	int Settings::gridCount() const
 	{
 		int n = 0;
