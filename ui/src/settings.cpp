@@ -695,6 +695,7 @@ namespace banana
 				{ "SuperDrastic: R3", "Fast-forward", "DS games in SuperDrastic: held, the game runs as fast as it can." },
 				{ "BananaDS: F / HOME", "Its menu", "DS games in BananaDS: save, load, quick settings, achievements, quit." },
 				{ "BananaDS: R2", "Fast-forward", "DS games in BananaDS: held, the game runs as fast as it can. Settings > Nintendo DS > Buttons moves it." },
+				{ "BananaDS: R3", "Blow on the mic", "DS games in BananaDS: held, the game hears a blow (candles, pinwheels, Nintendogs), the microphone on or off. Settings > Nintendo DS > Buttons moves it." },
 				{ "BananaDS: L3", "Swap the screens", "DS games in BananaDS, as F + SELECT. Settings > Nintendo DS > Buttons gives it, or any other button, another job." },
 				{ "BananaDS: F + R", "Save to slot 1", "DS games in BananaDS." },
 				{ "BananaDS: F + L", "Load slot 1", "DS games in BananaDS." },
@@ -718,13 +719,13 @@ namespace banana
 			const char* BB = "BananaDS buttons";
 			const std::vector<std::string> names = { "DS A", "DS B", "DS X", "DS Y", "DS L", "DS R", "DS START", "DS SELECT",
 				"DS Up", "DS Down", "DS Left", "DS Right", "Swap screens", "Save state", "Load state", "Fast-forward (held)",
-				"Fast-forward on/off", "Screenshot", "Menu", "Nothing" };
+				"Fast-forward on/off", "Screenshot", "Blow on the mic", "Menu", "Nothing" };
 			const std::vector<std::string> values = { "a", "b", "x", "y", "l", "r", "start", "select", "up", "down", "left", "right",
-				"swap", "save", "load", "ffhold", "ff", "screenshot", "menu", "none" };
+				"swap", "save", "load", "ffhold", "ff", "screenshot", "blow", "menu", "none" };
 			struct { const char* label; const char* key; const char* def; } btn[] = {
 				{ "A", "input.a", "a" }, { "B", "input.b", "b" }, { "X", "input.x", "x" }, { "Y", "input.y", "y" },
 				{ "L", "input.l", "l" }, { "R", "input.r", "r" }, { "L2", "input.l2", "none" }, { "R2", "input.r2", "ffhold" },
-				{ "L3", "input.l3", "swap" }, { "R3", "input.r3", "none" }, { "START", "input.start", "start" },
+				{ "L3", "input.l3", "swap" }, { "R3", "input.r3", "blow" }, { "START", "input.start", "start" },
 				{ "SELECT", "input.select", "select" }, { "D-pad up", "input.up", "up" }, { "D-pad down", "input.down", "down" },
 				{ "D-pad left", "input.left", "left" }, { "D-pad right", "input.right", "right" } };
 			for (auto& b : btn)
@@ -733,10 +734,10 @@ namespace banana
 				std::vector<std::string> n = names, v = values;
 				for (size_t i = 0; i < v.size(); i++)
 					if (v[i] == b.def) { std::rotate(n.begin(), n.begin() + i, n.begin() + i + 1); std::rotate(v.begin(), v.begin() + i, v.begin() + i + 1); }
-				add(BB, "nds", b.label, "In a DS game in BananaDS: a DS button, or a job. Save and load use slot 1. F + this button and HOME keep their own (the Hotkeys page).",
+				add(BB, "nds", b.label, "In a DS game in BananaDS: a DS button, or a job. Save and load use slot 1. Blow on the mic: the game hears a blow while it is held, the microphone on or off. F + this button and HOME keep their own (the Hotkeys page).",
 					"/data/bananads/bananads.conf", b.key, n, v);
 			}
-			add(BB, "nds", "Reset buttons", "Every button back to Banana's: the pad as printed, R2 fast-forward while held, L3 swaps the screens. Press A twice.",
+			add(BB, "nds", "Reset buttons", "Every button back to Banana's: the pad as printed, R2 fast-forward while held, L3 swaps the screens, R3 blows on the mic. Press A twice.",
 				"", "nds-reset-bananads-buttons", { "" }, { "" }, Item::ACTION);
 		}
 		const char* PW = "Power";

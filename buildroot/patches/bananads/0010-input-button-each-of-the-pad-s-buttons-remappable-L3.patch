@@ -1,25 +1,27 @@
-From dd2f06b232ec54ee9972a4ffa0fc79ac9b4af764 Mon Sep 17 00:00:00 2001
+From ca703a01347795820be83391ce59b958b8f80c42 Mon Sep 17 00:00:00 2001
 From: Toby Smith <toby.smith@seluna.co.uk>
 Date: Sat, 31 Oct 2026 14:01:56 +0000
 Subject: [PATCH] input.<button>: each of the pad's buttons remappable, L3
- swaps the screens
+ swaps the screens, R3 blows
 
 L3 was a third way into the in-game menu, beside F and HOME (#55), and no
 button could be moved (#52). input.<button> (a b x y l r start select up
 down left right l2 r2 l3 r3) now says what each does in a game: one of the
 DS's buttons, or a job (menu, swap, save, load, ff, ffhold, screenshot,
-none). The defaults are the pad as printed, R2 fast-forward while held, and
-L3 the screens swapped (it was the menu). F + a button, HOME and the menu's
-own keys never change, so no setting can lock the menu away. The menu's
-Hotkeys page lists the buttons with a job.
+blow, none). blow is the menu's Blow for as long as the button is held,
+as SuperDrastic's blow key. The defaults are the pad as printed, R2
+fast-forward while held, L3 the screens swapped (it was the menu) and R3 a
+blow. F + a button, HOME and the menu's own keys never change, so no
+setting can lock the menu away. The menu's Hotkeys page lists the buttons
+with a job.
 ---
  bananads/docs/SETTINGS.md     |   3 +-
- bananads/src/frontend_kms.cpp | 146 +++++++++++++++++++++++++---------
+ bananads/src/frontend_kms.cpp | 149 ++++++++++++++++++++++++++--------
  bananads/src/menu.c           |   4 +-
- 3 files changed, 114 insertions(+), 39 deletions(-)
+ 3 files changed, 117 insertions(+), 39 deletions(-)
 
 diff --git a/bananads/docs/SETTINGS.md b/bananads/docs/SETTINGS.md
-index c3bde46..fdb0387 100644
+index c3bde46..3acee54 100644
 --- a/bananads/docs/SETTINGS.md
 +++ b/bananads/docs/SETTINGS.md
 @@ -142,7 +142,8 @@ key can also come from the environment as `BANANADS_<KEY>` (dots become undersco
@@ -28,12 +30,12 @@ index c3bde46..fdb0387 100644
  | `kms.touch` | `$BANANADS_TOUCH`, else `fe5e0000.i2c` | the bottom panel's touchscreen: the input device whose sysfs path contains this |
 -| `kms.menu` | `on` | the in-game menu (src/menu.c: SuperDrastic's, in BananaOS's colours): L3 pauses the game and opens it on both panels. Resume, Save and Load (8 slots with pictures; a load can be undone), Quick settings (volume, brightness, the microphone's meter and a blow), Restart game, Quit game. `kms.menu_test=<n>` opens it 3 s in, on the main page (1), Save (2), Load (3), Quick settings (4) or the quit question (5), for tests |
 +| `kms.menu` | `on` | the in-game menu (src/menu.c: SuperDrastic's, in BananaOS's colours): F or HOME (and a button set to `menu`, `input.<button>`) pauses the game and opens it on both panels. Resume, Save and Load (8 slots with pictures; a load can be undone), Quick settings (volume, brightness, the microphone's meter and a blow), Restart game, Quit game. `kms.menu_test=<n>` opens it 3 s in, on the main page (1), Save (2), Load (3), Quick settings (4) or the quit question (5), for tests |
-+| `input.<button>` | as the pad is printed; `input.r2` `ffhold`, `input.l3` `swap`, `input.l2` and `input.r3` `none` | what a button of the pad does in a game. `<button>`: `a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right` `l2` `r2` `l3` `r3`. The value: one of the DS's buttons (`a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right`; two buttons can be the same DS button) or a job: `menu` (the in-game menu, on release), `swap` (the screens, as F + SELECT, remembered for the game), `save` / `load` (slot 1, as F + R / F + L), `ff` (fast-forward on and off, as F + X), `ffhold` (fast-forward while held), `screenshot`, `none`. A keyboard's keys follow the button they stand for. F + a button, HOME and the menu's own keys never change, so no setting leaves you without the menu. A value it doesn't know is logged and the button keeps its own |
++| `input.<button>` | as the pad is printed; `input.r2` `ffhold`, `input.l3` `swap`, `input.r3` `blow`, `input.l2` `none` | what a button of the pad does in a game. `<button>`: `a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right` `l2` `r2` `l3` `r3`. The value: one of the DS's buttons (`a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right`; two buttons can be the same DS button) or a job: `menu` (the in-game menu, on release), `swap` (the screens, as F + SELECT, remembered for the game), `save` / `load` (slot 1, as F + R / F + L), `ff` (fast-forward on and off, as F + X), `ffhold` (fast-forward while held), `screenshot`, `blow` (the game hears a blow on the mic while it's held, the menu's Blow, the mic on or off), `none`. A keyboard's keys follow the button they stand for. F + a button, HOME and the menu's own keys never change, so no setting leaves you without the menu. A value it doesn't know is logged and the button keeps its own |
  | `kms.lowlat` | `off` | **Experimental.** `on`: low latency. Each frame is aimed at a vblank: the emulator's thread starts it as late as its measured time allows (its own work and the presenter's 2D wait and shader pass, each a decaying maximum, plus `kms.lowlat_pad_us`, plus up to 16 ms more after frames that showed late; never the time a frame waited for the panels), so the buttons are read as late as possible. Frames are held to their own vblank's window (never shown a refresh early) and up to three may wait, so a game slower than a refresh starts the next frame early instead of stuttering; the next frame always aims at the refresh after the last waiting one. Measured in 0.5.0 (agent-qa/LL2.md): 15-21 ms from a frame's start to the panels instead of 48-60, 0-3 repeats a minute in a Mario Kart DS race (single frames of 20-60 ms can't be hidden without buffering). cpugov uses a tighter step-down rule (`cpugov.tail` 0.8) and its own memory (`<rom>.<scale>.lowlat`). The game runs at the panels' rate (as `kms.pace=display`). `kms.lowlat_trace=<file>` writes each frame's times at the quit (also without `kms.lowlat`). `runahead1` / `runahead2`: that and run-ahead (`runahead`). A `[lowlat]` log line every 10 s |
  | `kms.lowlat_margin_us` | `1500` | with `kms.lowlat`: the deadline, this long before the earlier panel's vblank; +300 per commit that missed its vblank (at most 5000), back down after a clean 10 s |
  | `kms.lowlat_pad_us` | `1000` | with `kms.lowlat`: added to the frames' measured time when a frame is started |
 diff --git a/bananads/src/frontend_kms.cpp b/bananads/src/frontend_kms.cpp
-index 6af46f9..ce31e74 100644
+index 6af46f9..201e45e 100644
 --- a/bananads/src/frontend_kms.cpp
 +++ b/bananads/src/frontend_kms.cpp
 @@ -1132,6 +1132,42 @@ static uint32_t pad_bit(int code) {
@@ -43,16 +45,16 @@ index 6af46f9..ce31e74 100644
 +// input.<button> (docs/SETTINGS.md): what each of the pad's buttons does in a game, a DS button (0-11: the bit of
 +// emu.h's Key*) or one of BananaDS's own jobs. F + a button, HOME and the menu's own keys never change, so no setting
 +// can leave you without a way into the menu or out of the game.
-+enum { PAD_MENU = 100, PAD_SWAP, PAD_SAVE, PAD_LOAD, PAD_FF, PAD_FFHOLD, PAD_SHOT, PAD_NONE };
++enum { PAD_MENU = 100, PAD_SWAP, PAD_SAVE, PAD_LOAD, PAD_FF, PAD_FFHOLD, PAD_SHOT, PAD_BLOW, PAD_NONE };
 +enum { P_A, P_B, P_X, P_Y, P_L, P_R, P_START, P_SELECT, P_UP, P_DOWN, P_LEFT, P_RIGHT, P_L2, P_R2, P_L3, P_R3, P_COUNT };
 +static const char* const pad_ds_names[12] = {"a", "b", "select", "start", "right", "left", "up", "down", "r", "l", "x", "y"};
-+static const char* const pad_job_names[] = {"menu", "swap", "save", "load", "ff", "ffhold", "screenshot", "none"};
++static const char* const pad_job_names[] = {"menu", "swap", "save", "load", "ff", "ffhold", "screenshot", "blow", "none"};
 +static const struct { const char* name; int code, kb, def; } pad_buttons[P_COUNT] = {
 +    {"a", BTN_EAST, KEY_ENTER, 0}, {"b", BTN_SOUTH, KEY_BACKSPACE, 1}, {"x", BTN_NORTH, KEY_X, 10},
 +    {"y", BTN_WEST, KEY_Y, 11}, {"l", BTN_TL, KEY_PAGEUP, 9}, {"r", BTN_TR, KEY_PAGEDOWN, 8},
 +    {"start", BTN_START, KEY_S, 3}, {"select", BTN_SELECT, KEY_TAB, 2}, {"up", BTN_DPAD_UP, KEY_UP, 6},
 +    {"down", BTN_DPAD_DOWN, KEY_DOWN, 7}, {"left", BTN_DPAD_LEFT, KEY_LEFT, 5}, {"right", BTN_DPAD_RIGHT, KEY_RIGHT, 4},
-+    {"l2", BTN_TL2, 0, PAD_NONE}, {"r2", BTN_TR2, 0, PAD_FFHOLD}, {"l3", BTN_THUMBL, 0, PAD_SWAP}, {"r3", BTN_THUMBR, 0, PAD_NONE}};
++    {"l2", BTN_TL2, 0, PAD_NONE}, {"r2", BTN_TR2, 0, PAD_FFHOLD}, {"l3", BTN_THUMBL, 0, PAD_SWAP}, {"r3", BTN_THUMBR, 0, PAD_BLOW}};
 +static int g_pad[P_COUNT];  // each button's job (pad_init)
 +static int pad_index(int code) {
 +    for (int i = 0; i < P_COUNT; i++)
@@ -112,7 +114,7 @@ index 6af46f9..ce31e74 100644
 +    static const char* const label[P_COUNT] = {"A", "B", "X", "Y", "L", "R", "START", "SELECT", "UP", "DOWN", "LEFT",
 +                                               "RIGHT", "L2", "R2", "L3", "R3"};
 +    static const char* const job[] = {"This menu", "Swap the screens", "Save state (slot 1)", "Load state (slot 1)",
-+                                      "Fast-forward on / off", "Fast-forward (held)", "Screenshot"};
++                                      "Fast-forward on / off", "Fast-forward (held)", "Screenshot", "Blow on the mic (held)"};
 +    for (int b = 0, at = n; b < P_COUNT; b++)
 +        if (g_pad[b] >= PAD_MENU && g_pad[b] < PAD_NONE && at++ == i) {
 +            *keys = label[b];
@@ -162,7 +164,7 @@ index 6af46f9..ce31e74 100644
          hot = false;
          home_down = false;
          menu_down = false;
-@@ -2172,6 +2226,35 @@ int run_kms(Emu& emu, const Config& cfg) {
+@@ -2172,6 +2226,38 @@ int run_kms(Emu& emu, const Config& cfg) {
          }
          pcv.notify_all();
      };
@@ -192,13 +194,16 @@ index 6af46f9..ce31e74 100644
 +                else if (!down && ff_held) { g_ff = 0; ff_held = false; }
 +                break;
 +            case PAD_SHOT: if (down) dp.shot = true; break;
++            // held: the game hears a blow on the mic (the menu's Blow, mic on or off) until it's let go, as
++            // SuperDrastic's blow key (a minute at most)
++            case PAD_BLOW: mh.emu->mic().blow(down ? 60000 : 0); break;
 +            default: break;
 +        }
 +    };
      std::vector<pollfd> pfd;
      long shown_mark = 0, made_mark = 0, drop_mark = 0, rep_mark = 0;
      long long since = now_us();
-@@ -2251,10 +2334,13 @@ int run_kms(Emu& emu, const Config& cfg) {
+@@ -2251,10 +2337,13 @@ int run_kms(Emu& emu, const Config& cfg) {
                              stick_keys = (stick_keys & ~(KeyUp | KeyDown)) | (x.value < -t ? KeyUp : x.value > t ? KeyDown : 0);
                          continue;
                      }
@@ -216,7 +221,7 @@ index 6af46f9..ce31e74 100644
                      // the lid (a shut lid when the game started counts from the next close: its first event is the open)
                      if (x.type == EV_SW && x.code == SW_LID) {
                          in_lid = x.value != 0;
-@@ -2262,7 +2348,7 @@ int run_kms(Emu& emu, const Config& cfg) {
+@@ -2262,7 +2351,7 @@ int run_kms(Emu& emu, const Config& cfg) {
                      }
                      if (x.type != EV_KEY || x.value == 2) continue;
                      if (home_down && x.value && x.code != BTN_Z) home_used = true;  // HOME + something: not HOME alone
@@ -225,7 +230,7 @@ index 6af46f9..ce31e74 100644
                          if (x.value) { home_down = true; home_used = false; continue; }
                          if (home_down && !home_used && menu_on) open_menu(0);
                          home_down = false;
-@@ -2277,20 +2363,6 @@ int run_kms(Emu& emu, const Config& cfg) {
+@@ -2277,20 +2366,6 @@ int run_kms(Emu& emu, const Config& cfg) {
                          }
                          continue;
                      }
@@ -246,7 +251,7 @@ index 6af46f9..ce31e74 100644
                      if (is_hotkey(x.code)) {
                          // F pressed and let go on its own opens the menu, as SuperDrastic's does; F + a button is a
                          // hotkey and opens nothing
-@@ -2302,16 +2374,18 @@ int run_kms(Emu& emu, const Config& cfg) {
+@@ -2302,16 +2377,18 @@ int run_kms(Emu& emu, const Config& cfg) {
                          continue;
                      }
                      if (x.code == KEY_ESC && x.value) g_quit = true;
