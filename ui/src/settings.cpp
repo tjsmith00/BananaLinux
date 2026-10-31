@@ -1198,6 +1198,15 @@ namespace banana
 		}();
 		return all;
 	}
+	// a page's row shows the value of one row on its page: the thing most worth knowing without opening it
+	static std::string pageSummary(const std::string& pageKey)
+	{
+		static const struct { const char* page; const char* row; } S[] = {
+			{ "net_bt", "bluetooth" }, { "net_share", "share" }, { "ra_second", "retroarch_panel" }, { "ra_picture", "ra_shader" },
+		};
+		for (auto& s : S) if (pageKey == s.page) return s.row;
+		return "";
+	}
 	static const Subpage* subpageFrom(const std::string& key)
 	{
 		for (auto& s : subpages()) if (key == s.key) return &s;
@@ -1468,6 +1477,20 @@ namespace banana
 		case Key::START: mOpen = false; return CLOSED;
 		default: return NONE;
 		}
+	}
+
+	std::vector<std::string> Settings::sectionPath(const std::string& section) const
+	{
+		std::vector<std::string> path = { section };
+		for (int depth = 0; depth < 6; depth++)	// (a few levels at most; no loop however the table is written)
+		{
+			const Subpage* s = subpageOf(path.front());
+			if (!s) break;
+			auto it = std::find_if(items.begin(), items.end(), [&](const Item& i) { return i.key == s->key; });
+			if (it == items.end()) break;
+			path.insert(path.begin(), it->section);
+		}
+		return path;
 	}
 
 	// the sections with no tile on the groups' grid (after the others): Power (Y there) and the subpages (subpages())
@@ -2307,14 +2330,33 @@ namespace banana
 		be->beginScreen(1);
 		box("screen", false, 0, 0, 640, 480);
 		box("bubble", false, 18, 14, 604, 54);
-		text(cur.section, true, 22, 38, 28, p.ink);
 		// the count only when the group has more rows than the five in view (it is the only sign of the others)
+		float titleW = 564;
 		if (ge - gb > ROWS)
 		{
 			char count[32];
 			snprintf(count, sizeof count, "%02d / %02d", sel - gb + 1, ge - gb);
 			float cw = text(count, true, 17, 0, 0, p.muted, false, 0, true);
 			text(count, true, 17, 602 - cw, 31, p.muted);
+			titleW = 602 - cw - 24 - 38;
+		}
+		// the title: a subpage's place, the sections above it muted (Nintendo DS > SuperDrastic > ...), each translated on
+		// its own; the outer ones left out ("...") when the whole doesn't fit beside the count
+		{
+			std::vector<std::string> path = sectionPath(cur.section);
+			for (auto& s : path) s = lang::active() ? lang::tr(s) : s;
+			const std::string own = path.back();
+			path.pop_back();
+			auto join = [&](size_t from) { std::string r = from > 0 ? "... > " : ""; for (size_t i = from; i < path.size(); i++) r += path[i] + " > "; return r; };
+			rawText = true;
+			size_t from = 0;
+			std::string head = join(from);
+			float ow = text(own, true, 22, 0, 0, p.ink, false, 0, true);
+			while (from < path.size() && text(head, true, 22, 0, 0, p.muted, false, 0, true) + ow > titleW) head = join(++from);
+			if (from == path.size()) head.clear();	// (none of them fits: the page's own name alone)
+			float hw = text(head, true, 22, 38, 28, p.muted);
+			textFit(own, true, 22, 38 + hw, 28, titleW - hw, p.ink, false);
+			rawText = false;
 		}
 		// the rows, the highlight and the scroll where their easing has them; rows clipped to the list's band, so one
 		// scrolling in slides from under the header or the buttons
@@ -2337,6 +2379,16 @@ namespace banana
 			}
 			else if (it.kind == Item::INFO) v = it.key == "hk" && !it.names.empty() ? it.names[0] : "";	// (Hotkeys: what it does)
 			// a page's row: Network the network it is on; Update the packages waiting on the card; the others nothing
+			else if (it.kind == Item::PAGE && (it.key == "nds_superdrastic" || it.key == "nds_bananads"))	// the DS emulator chosen
+			{
+				for (auto& r : items)
+					if (r.key == "nds_emulator" && r.at < (int)r.values.size() && "nds_" + r.values[r.at] == it.key) v = "In use";
+			}
+			else if (it.kind == Item::PAGE && !pageSummary(it.key).empty())	// a page's row: one of its rows' value
+			{
+				for (auto& r : items)
+					if (r.key == pageSummary(it.key) && r.kind == Item::CHOICE && r.at < (int)r.names.size()) v = r.names[r.at];
+			}
 			else if (it.kind == Item::PAGE && it.key.compare(0, 11, "hotkeys_ra.") == 0)	// a system's hotkeys: any of its own
 			{
 				if (const Subpage* s = subpageFrom(it.key))
