@@ -381,7 +381,7 @@ settings		The check failed: {reason}.	检查失败：{reason}。
 settings		Downloaded and checked against the release's SHA-256. A, then A again, writes it to the other slot; this version stays as it is until the restart.	已下载并对照发布的 SHA-256 校验通过。按 A，再次按 A，将其写入另一个插槽；此版本在重启前保持不变。
 settings		A downloads it ({n} MB) to banana/updates on the card and checks it; nothing is installed until you choose Install. X checks again.	按 A 将其（{n} MB）下载到卡上的 banana/updates 并校验；在你选择「安装」之前不会安装任何内容。按 X 重新校验。
 settings		This handheld has the newest version. A checks again.	此掌机已是最新版本。按 A 重新检查。
-settings		GitHub has no release for this handheld. With Settings > System > Test versions left out, only stable versions count, and there are none yet.	GitHub 上没有适用于此掌机的发布版本。由于「设置 > 系统 > 测试版本」已排除，仅稳定版计入，而目前还没有稳定版。
+settings		GitHub has no release for this handheld. With Settings > System > Updates > Test versions left out, only stable versions count, and there are none yet.	GitHub 上没有适用于此掌机的发布版本。由于「设置 > 系统 > 更新 > 测试版本」已排除，仅稳定版计入，而目前还没有稳定版。
 settings		A asks GitHub (Wi-Fi needed) whether a newer version is out for this handheld. Nothing is downloaded until you choose Download.	按 A 询问 GitHub（需 Wi-Fi）此掌机是否有更新版本。在你选择「下载」之前不会下载任何内容。
 settings		The check didn't answer.	检查未响应。
 settings		{n} MB	{n} MB
@@ -1356,7 +1356,7 @@ settings		Update failed	更新失败
 settings		Installing update	正在安装更新
 settings		Don't turn the handheld off	请勿关闭掌机
 settings		Don't turn the handheld off. Your games, saves and settings stay; the running version isn't touched until the restart. It takes a minute or two.	请勿关闭掌机。你的游戏、存档与设置保持不变；运行中的版本在重启前不受影响。这大约需要一两分钟。
-settings		A restarts into the new version now. If it ever fails to start, Settings > System > Previous version brings this one back.	按 A 立即重启进入新版本。若日后无法启动，可用 设置 > 系统 > 上一版本 恢复当前版本。
+settings		A restarts into the new version now. If it ever fails to start, Settings > System > Updates > Previous version brings this one back.	按 A 立即重启进入新版本。若日后无法启动，可用 设置 > 系统 > 更新 > 上一版本 恢复当前版本。
 settings		The password couldn't be passed on ({runDir} can't be written).	无法传递密码（{runDir} 无法写入）。
 settings		Looking for a home server on the network...	正在网络上查找家庭服务器…
 settings		Not paired yet: Server, above, pairs the handheld.	尚未配对：上方的「服务器」可为掌机配对。

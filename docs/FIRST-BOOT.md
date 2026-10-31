@@ -23,7 +23,7 @@ found to write the card incorrectly, and the handheld then fails to boot.
    zone, a RetroAchievements account, a ScreenScraper account; B skips it (Settings > System > First-time setup
    brings it back), A on Finish ends it.
 3. The menu, on the Nintendo DS with no games: "Copy .nds files to roms/nds".
-4. Power off (Start > System > Shut down, or hold power 2 s), put the card in a computer: a `BANANA` drive with
+4. Power off (Start, then Y: Power > Shut down, or hold power 2 s), put the card in a computer: a `BANANA` drive with
    `roms/`, `bios/`, `banana/` and so on. Games go in `roms/nds`, `roms/gba`... (`banana/README.txt`).
 
 ## Things to try
@@ -39,7 +39,7 @@ found to write the card incorrectly, and the handheld then fails to boot.
 ## Updating later
 
 A build's `banana-<handheld>-<version>.update.tar` goes in `banana/updates/` on the card (from a computer, or over
-Wi-Fi with Settings > File sharing on); Settings > System > Update lists it, A twice writes it to the card's other
+Wi-Fi with Settings > File sharing on); Settings > System > Updates > Update lists it, A twice writes it to the card's other
 system slot and checks it, A restarts into it. The version before stays on the card: Settings > System >
 Previous version restarts into it. Nothing on the data partition (games, saves, settings) is touched by either.
 
