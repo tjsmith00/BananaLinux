@@ -108,6 +108,28 @@ namespace banana
 			return nullptr;
 		}
 
+		// Other systems > RetroArch hotkeys > a system's page: its own F hotkeys and L2, R2, L3 and R3
+		// (ra_hotkeys.<system>, ra_btn_l2.<system>...; run-retroarch). "all": the shared key's value. No default: a card
+		// without the line (or a reset) has the shared one, and PlayStation and N64 their game's own buttons
+		const char* const RA_BTN_SYS[] = { "all", "game", "ff", "save", "load", "menu", "pause", "screenshot", "none", nullptr };
+		const char* const ALL_ON_OFF[] = { "all", "on", "off", nullptr };
+		const KeyDef* findSystem(const std::string& key)
+		{
+			static const KeyDef BTN = { "", "", ENUM, RA_BTN_SYS, 0, 0, true }, HK = { "", "", ENUM, ALL_ON_OFF, 0, 0, true };
+			size_t dot = key.find('.');
+			if (dot == std::string::npos || dot + 1 == key.size()) return nullptr;
+			std::string base = key.substr(0, dot);
+			if (base == "ra_hotkeys") return &HK;
+			if (base == "ra_btn_l2" || base == "ra_btn_r2" || base == "ra_btn_l3" || base == "ra_btn_r3") return &BTN;
+			return nullptr;
+		}
+
+		// a key settings.conf knows: the schema's, a core.<system> or a system's own hotkeys and buttons
+		bool knownKey(const std::string& key)
+		{
+			return find(key) != nullptr || key.rfind("core.", 0) == 0 || findSystem(key) != nullptr;
+		}
+
 		std::string trim(const std::string& s)
 		{
 			size_t a = s.find_first_not_of(" \t\r\n"), b = s.find_last_not_of(" \t\r\n");
@@ -168,6 +190,7 @@ namespace banana
 		bool validKey(const std::string& key, const std::string& value)
 		{
 			if (const KeyDef* k = find(key)) return valid(*k, value);
+			if (const KeyDef* k = findSystem(key)) return valid(*k, value);
 			// core.<system>: a system added to systems.conf gets the same core rule without a schema entry of its own
 			if (key.rfind("core.", 0) == 0)
 			{
@@ -237,7 +260,7 @@ namespace banana
 
 	bool settingIsEmulator(const std::string& key)
 	{
-		if (key.rfind("core.", 0) == 0) return true;
+		if (key.rfind("core.", 0) == 0 || findSystem(key)) return true;
 		const KeyDef* k = find(key);
 		return k && (k->emulator || k->type == CORE);
 	}
@@ -293,7 +316,7 @@ namespace banana
 			if (!ln.empty() && ln.back() == '\r') l.raw.pop_back();
 			if (split(ln, l.key, l.value))
 			{
-				l.known = find(l.key) != nullptr || l.key.rfind("core.", 0) == 0;
+				l.known = knownKey(l.key);
 				if (l.known) last[l.key] = (int)lines.size();
 			}
 			lines.push_back(l);
@@ -335,7 +358,7 @@ namespace banana
 			std::string v = defaultFor(key);
 			return validKey(key, v) ? v : "";
 		};
-		auto known = [&](const std::string& key) { return find(key) != nullptr || key.rfind("core.", 0) == 0; };
+		auto known = [&](const std::string& key) { return knownKey(key); };
 		auto inScope = [&](const std::string& key)
 		{
 			bool emu = settingIsEmulator(key);

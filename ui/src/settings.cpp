@@ -436,6 +436,9 @@ namespace banana
 		for (const auto& c : sys.cores)
 			if (coreInstalled(c.first)) { names.push_back(c.second); values.push_back(c.first); }
 	}
+	// a RetroArch system's own hotkeys page (Other systems > RetroArch hotkeys > the system): its row's key, its section
+	static std::string raHotkeysKey(const RaSystem& sys) { return std::string("hotkeys_ra.") + sys.id; }
+	static std::string raHotkeysSection(const RaSystem& sys) { return std::string(sys.label) + " hotkeys"; }
 	// which cores are installed, for every system: Settings builds its rows again when a download changed it
 	static std::string coreSignature()
 	{
@@ -737,7 +740,33 @@ namespace banana
 				{ "F + L2", "Rewind", "In RetroArch's games: held, the game runs backwards." },
 				{ "F + Y", "Frame rate", "In RetroArch's games: shown in a corner, or not." },
 			});
-			buttons("RetroArch hotkeys", "gamepad", "ra_btn_", "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own), as Other systems > Buttons has it now; that page gives it another job.");
+			buttons("RetroArch hotkeys", "gamepad", "ra_btn_", "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own), as Other systems > Buttons has it now; that page gives it another job. A system's own page, below, can give it another job in that system's games alone.");
+			// each system's own page, a row for it at the end of RetroArch's: its F hotkeys and L2, R2, L3 and R3, the
+			// shared ones above ("Same as all", the first: a card without the line) or its own (ra_hotkeys.<system>,
+			// ra_btn_l2.<system>...; run-retroarch). PlayStation and N64 games use L2 to R3: theirs start as the game's own
+			// and don't follow the shared ones
+			for (const auto& sys : RA_SYSTEMS)
+				add("RetroArch hotkeys", "gamepad", sys.label, "This system's own hotkeys: F hotkeys on or off, and L2, R2, L3 and R3's jobs in its games alone. Same as all follows the rows above.",
+					"", raHotkeysKey(sys).c_str(), {}, {}, Item::PAGE);
+			for (const auto& sys : RA_SYSTEMS)
+			{
+				const std::string sec = raHotkeysSection(sys), id = sys.id;
+				const bool own = id == "psx" || id == "n64";
+				add(sec.c_str(), "gamepad", "F hotkeys", "F + a button in this system's games (RetroArch hotkeys has the list). Same as all: as RetroArch hotkeys > F hotkeys. Off: only F + X and F + Start, the two needed to get out.",
+					menu, ("ra_hotkeys." + id).c_str(), { "Same as all", "On", "Off" }, { "all", "on", "off" });
+				std::vector<std::string> names = { "Game's own", "Fast-forward", "Save state", "Load state", "Menu", "Pause", "Screenshot", "Nothing" };
+				std::vector<std::string> values = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none" };
+				if (!own) { names.insert(names.begin(), "Same as all"); values.insert(values.begin(), "all"); }
+				const std::string help = own
+					? "Alone, in this system's games, which use it: Game's own leaves it the game's button. Another job (fast-forward, a save or load state, RetroArch's menu, pause, a screenshot, nothing) takes it from the game. With F held, it is RetroArch's hotkey."
+					: "Alone, in this system's games. Same as all: as Other systems > Buttons has it. Game's own: the game's button. Fast-forward: on, and off again. Save and load state: the current slot. Menu: RetroArch's. With F held, it is RetroArch's hotkey.";
+				for (const char* b : { "L2", "R2", "L3", "R3" })
+				{
+					std::string key = std::string("ra_btn_") + (char)tolower(b[0]) + b[1] + "." + id;
+					std::string h = help + (std::string(b) == "R3" ? " (The RG DS Plus has no R3.)" : "");
+					add(sec.c_str(), "gamepad", b, h.c_str(), menu, key.c_str(), names, values);
+				}
+			}
 		}
 		// Power: Y on the groups (no tile of its own: the grid is the six above), straight from the home screen's START
 		// the DS buttons page (Nintendo DS > Buttons): L2, R2, L3 and R3's jobs in banana/settings.conf (nds_btn_*, defaults
@@ -1089,26 +1118,35 @@ namespace banana
 
 	// the subpages: a section with no tile on the groups' grid, opened by A (or RIGHT) on a PAGE row of another
 	// section (its key), B there going back to that row. A new subpage is a line here and its rows in build()
-	struct Subpage { const char* key; const char* section; };
-	static const Subpage SUBPAGES[] = {
-		{ "shelves", "Shown systems" },
-		{ "hotkeys", "Hotkeys" },
-		{ "hotkeys_sd", "SuperDrastic hotkeys" },
-		{ "hotkeys_bds", "BananaDS hotkeys" },
-		{ "hotkeys_ra", "RetroArch hotkeys" },
-		{ "ds_buttons", "DS buttons" },
-		{ "ra_buttons", "Other systems buttons" },
-		{ "homesync", "Home server" },
-		{ "hs_systems", "Home server systems" },
-	};
+	struct Subpage { std::string key, section; };
+	static const std::vector<Subpage>& subpages()
+	{
+		static const std::vector<Subpage> all = []
+		{
+			std::vector<Subpage> v = {
+				{ "shelves", "Shown systems" },
+				{ "hotkeys", "Hotkeys" },
+				{ "hotkeys_sd", "SuperDrastic hotkeys" },
+				{ "hotkeys_bds", "BananaDS hotkeys" },
+				{ "hotkeys_ra", "RetroArch hotkeys" },
+				{ "ds_buttons", "DS buttons" },
+				{ "ra_buttons", "Other systems buttons" },
+				{ "homesync", "Home server" },
+				{ "hs_systems", "Home server systems" },
+			};
+			for (const auto& sys : RA_SYSTEMS) v.push_back({ raHotkeysKey(sys), raHotkeysSection(sys) });
+			return v;
+		}();
+		return all;
+	}
 	static const Subpage* subpageFrom(const std::string& key)
 	{
-		for (auto& s : SUBPAGES) if (key == s.key) return &s;
+		for (auto& s : subpages()) if (key == s.key) return &s;
 		return nullptr;
 	}
 	static const Subpage* subpageOf(const std::string& section)
 	{
-		for (auto& s : SUBPAGES) if (section == s.section) return &s;
+		for (auto& s : subpages()) if (section == s.section) return &s;
 		return nullptr;
 	}
 
@@ -1383,7 +1421,7 @@ namespace banana
 		}
 	}
 
-	// the sections with no tile on the groups' grid (after the others): Power (Y there) and the subpages (SUBPAGES)
+	// the sections with no tile on the groups' grid (after the others): Power (Y there) and the subpages (subpages())
 	static bool tileless(const std::string& section) { return section == "Power" || subpageOf(section); }
 	int Settings::gridCount() const
 	{
@@ -2250,6 +2288,11 @@ namespace banana
 			}
 			else if (it.kind == Item::INFO) v = it.key == "hk" && !it.names.empty() ? it.names[0] : "";	// (Hotkeys: what it does)
 			// a page's row: Network the network it is on; Update the packages waiting on the card; the others nothing
+			else if (it.kind == Item::PAGE && it.key.compare(0, 11, "hotkeys_ra.") == 0)	// a system's hotkeys: any of its own
+			{
+				if (const Subpage* s = subpageFrom(it.key))
+					for (auto& r : items) if (r.section == s->section && r.at > 0) v = "Own";
+			}
 			else if (it.kind == Item::PAGE && it.key == "network") v = wstat.connected ? fit(wstat.ssid, true, 19, 300) : (wifiOn() ? "Choose" : "");
 			else if (it.kind == Item::PAGE && it.key == "bt_devices") v = btRow();
 			else if (it.kind == Item::PAGE && it.key == "update") v = updatesWaiting(updatesDir, runDir, version);
@@ -6444,10 +6487,13 @@ namespace banana
 		}
 	};
 
-	void Settings::gameOpen(const std::string& title, const std::string& system, int screen, bool touch)
+	void Settings::gameOpen(const std::string& title, const std::string& system, int screen, bool touch, const std::string& systemId)
 	{
 		gTitle = title; gSystem = system; gScreen = screen; gTouch = touch;
-		gHotkeys = getConfValue(data + "/settings.conf", "ra_hotkeys", "on") != "off";
+		// the system's own F hotkeys (RetroArch hotkeys > the system), else the shared ones, as run-retroarch reads them
+		std::string hk = systemId.empty() ? "" : getConfValue(data + "/settings.conf", "ra_hotkeys." + systemId, "");
+		if (hk.empty() || hk == "all") hk = getConfValue(data + "/settings.conf", "ra_hotkeys", "on");
+		gHotkeys = hk != "off";
 		gFlash = gDown = -1; gSeen = -1; awardsSeen = 0; wake = false;
 		pkView = PK_PARTY; pkMon = pkMonPage = 0; pkBattle = false; pkPocket = pkBagPage = pkDexPage = pkDexNat = 0; pkGoalKey.clear(); pkGoalTeam.clear(); pkWildPage = 0; pkWildKey = -1;
 		gcView = gcomp::P_STATUS; gcScreen = 0; gcScreens = 1; gcList = gcRow = -1; gcBattle = false; gcHits.clear();

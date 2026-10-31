@@ -9,6 +9,14 @@ setting() {
     [ -n "$v" ] || v=$(sed -n "/^ *$1 *= */{s///;h};\${x;p}" /etc/banana/settings.conf 2>/dev/null)
     printf '%s' "$v"
 }
+# syssetting <key>: this system's own (Settings > Other systems > RetroArch hotkeys > the system: <key>.<system>), else
+# with no line or "all" the shared <key>
+syssetting() {
+    v=
+    [ -n "$BANANA_SYSTEM" ] && v=$(setting "$1.$BANANA_SYSTEM")
+    { [ -z "$v" ] || [ "$v" = all ]; } && v=$(setting "$1")
+    printf '%s' "$v"
+}
 # Settings > Other systems > the system's core (settings.conf's core.<system>, BANANA_SYSTEM from banana-ui): another
 # installed core instead of systems.conf's, e.g. mGBA for the Game Boy Advance (RetroAchievements), or one downloaded
 # with RetroArch's Core Downloader; one not installed is ignored
@@ -207,7 +215,8 @@ if [ -f $KEEP ]; then
 fi
 grep -q '^joypad_autoconfig_dir = "/run/' $CFG && set_cfg joypad_autoconfig_dir /usr/share/libretro/autoconfig
 rm -f $HK
-if [ "$(sed -n '/^ra_hotkeys *= */{s///;h};${x;p}' /data/banana/settings.conf 2>/dev/null)" = off ]; then
+# (this system's own, RetroArch hotkeys > the system > F hotkeys, over the shared one)
+if [ "$(syssetting ra_hotkeys)" = off ]; then
     AC=/run/banana/ra-autoconfig
     rm -rf $AC; mkdir -p $AC/udev
     for f in /usr/share/libretro/autoconfig/udev/*.cfg; do
@@ -225,8 +234,10 @@ fi
 # screenshot, nothing), as Nintendo DS > Buttons is for the DS. RetroArch's hotkeys only work with F held, so bananad
 # sends the job's command down RetroArch's stdin pipe (/run/banana/ra-buttons: "<button> <command>" lines, its list
 # for this game), and the button is moved off the game: its RetroPad bind on joystick button 30-33, which no pad has
-# (a bind of "nul" falls back to the autoconfig profile's). Not PlayStation and N64, whose games use those buttons.
-# What RetroArch saves of the binds on exit is put back below, as for the hotkeys.
+# (a bind of "nul" falls back to the autoconfig profile's). A system's own page (RetroArch hotkeys > the system:
+# ra_btn_l2.<system>...) gives a button another job in its games alone; with no line or "all" the shared one. Not
+# PlayStation and N64 from the shared ones, whose games use those buttons: theirs are the game's own unless their own
+# page gives one a job. What RetroArch saves of the binds on exit is put back below, as for the hotkeys.
 RBF=/run/banana/ra-buttons
 RBCFG=/run/banana/retroarch-buttons.cfg
 RBKEEP=/data/retroarch/.banana-buttons.keep
@@ -237,13 +248,18 @@ if [ -f $RBKEEP ]; then
 fi
 rm -f $RBF $RBCFG
 RBA=
-case ${BANANA_SYSTEM:-psx} in
-psx|n64) ;;
+case $BANANA_SYSTEM in
+"") ;;
 *)
     n=30
     for b in l2 r2 l3 r3; do
-        j=$(setting ra_btn_$b)
-        [ -n "$j" ] || { [ $b = r2 ] && j=ff || j=game; }
+        j=$(setting "ra_btn_$b.$BANANA_SYSTEM")
+        if [ -z "$j" ] || [ "$j" = all ]; then
+            case $BANANA_SYSTEM in
+            psx|n64) j=game ;;
+            *) j=$(setting ra_btn_$b); [ -n "$j" ] || { [ $b = r2 ] && j=ff || j=game; } ;;
+            esac
+        fi
         case $j in
         ff) c=FAST_FORWARD ;; save) c=SAVE_STATE ;; load) c=LOAD_STATE ;; menu) c=MENU_TOGGLE ;;
         pause) c=PAUSE_TOGGLE ;; screenshot) c=SCREENSHOT ;; none) c=- ;; *) c= ;;

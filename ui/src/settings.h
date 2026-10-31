@@ -88,7 +88,8 @@ namespace banana
 		// shows the game's RetroAchievements (progress and the latest unlocks with their badges) and touch tiles for
 		// RetroArch (save, load, its menu, fast forward, quit), in the in-game menu's look.
 		enum GameAction { G_NONE, G_SAVE, G_LOAD, G_MENU, G_FFWD, G_QUIT };
-		void gameOpen(const std::string& title, const std::string& system, int screen, bool touch);
+		// (systemId: systems.conf's id, for its own F hotkeys setting: ra_hotkeys.<id>)
+		void gameOpen(const std::string& title, const std::string& system, int screen, bool touch, const std::string& systemId = "");
 		void gameClose();
 		bool gameUpdate(double nowMs);		// true: the panel changed (a log line, a reply, a badge, a flash ending)
 		// true once after something the player should see came up on the panel (an achievement unlocked): it wakes a
