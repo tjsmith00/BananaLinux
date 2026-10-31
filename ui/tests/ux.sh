@@ -126,6 +126,9 @@ grep -q 'Majirefy = ' "$HERE/../system/rootfs/etc/banana/credits.txt" || { echo 
 # System > Hotkeys (its last row: up from the first) opens the list of hotkeys, B back to System on its row
 ux_run hotkeys "home 0; press start; press r; press r; press r; press r; press r; press a; press up; press a; wait 400; shot ux-hotkeys; press b; wait 400; shot ux-hotkeys-back"
 ux_lt 1000 "$(ux_diff "$OUT/$size-ux-hotkeys-bot.png" "$OUT/$size-ux-hotkeys-back-bot.png")" || { echo "FAIL $size: Hotkeys didn't open"; fail=1; }
+# Nintendo DS > SuperDrastic hotkeys (its fifth row: after Buttons) opens that emulator's own hotkeys, B back on its row
+ux_run hotkeys-sd "home 0; press start; press r; press r; press a; press down; press down; press down; press down; press a; wait 400; shot ux-hotkeys-sd; press b; wait 400; shot ux-hotkeys-sd-back"
+ux_lt 1000 "$(ux_diff "$OUT/$size-ux-hotkeys-sd-bot.png" "$OUT/$size-ux-hotkeys-sd-back-bot.png")" || { echo "FAIL $size: SuperDrastic hotkeys didn't open"; fail=1; }
 
 # the wordmark's B (tools/make-logo.py's B_GLYPH): square corners on the left, so it doesn't read as a G; in the boot
 # animation's mask (word.png) its top-left and bottom-left pixels are set

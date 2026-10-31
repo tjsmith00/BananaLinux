@@ -524,6 +524,9 @@ namespace banana
 			"", "ds_language", { "English", "Japanese", "French", "German", "Italian", "Spanish" }, { "1", "0", "2", "3", "4", "5" });
 		// L2, R2, L3 and R3's jobs, the same in both emulators (the DS buttons page below; nds-buttons)
 		add(N, "nds", "Buttons", "What L2, R2, L3 and R3 do in a DS game, the same in both emulators: swap the screens, fast-forward, blow on the mic, save or load a state, the menu, one of the DS's buttons, or nothing. F + R saves and F + L loads a state in both.", "", "ds_buttons", {}, {}, Item::PAGE);
+		// each DS emulator's hotkeys, both whichever is chosen (their pages after System's Hotkeys)
+		add(N, "nds", "SuperDrastic hotkeys", "The buttons that do something in a DS game in SuperDrastic: its menu, quitting, swapping the screens, save states, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_sd", {}, {}, Item::PAGE);
+		add(N, "nds", "BananaDS hotkeys", "The buttons that do something in a DS game in BananaDS: its menu, quitting, swapping the screens, save states, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_bds", {}, {}, Item::PAGE);
 		// the DS's own name (its firmware's user name), in both emulators at once: what a game calls you (#30)
 		add(N, "nds", "DS name", "The name the DS itself is set to, as on a real one: Mario Kart's records, Pictochat, a game's save. 10 characters at most. Both emulators; empty: Dr DraStic in SuperDrastic, Banana in BananaDS.",
 			"", "ds_name", {}, {}, Item::PAGE);
@@ -617,8 +620,7 @@ namespace banana
 		}
 		// L2, R2, L3 and R3 alone in RetroArch's games (the page below; run-retroarch, bananad)
 		add(O, "gamepad", "Buttons", "What L2, R2, L3 and R3 do alone in a game: the game's own button, or fast-forward, save or load a state, RetroArch's menu, pause, a screenshot, nothing. Not PlayStation and N64, whose games use them. F + R saves and F + L loads a state, as on the DS.", "", "ra_buttons", {}, {}, Item::PAGE);
-		add(O, "gamepad", "RetroArch hotkeys", "F + a button in a game: X the menu, Start quits, L and R load and save a state, Y the frame counter, L2 rewind, R2 fast forward. Off: only F + X and F + Start, the two needed to get out, and none bound in RetroArch's own menu either.",
-			menu, "ra_hotkeys", { "On", "Off" }, { "on", "off" });
+		add(O, "gamepad", "RetroArch hotkeys", "The buttons that do something in RetroArch's games: F + a button (its menu, quitting, save states, fast-forward, rewind), those switched off but two, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_ra", {}, {}, Item::PAGE);
 		add(O, "gamepad", "Reset RetroArch", "RetroArch's settings back to Banana's: for a button bound away in RetroArch's menu (an A that does something else, a hotkey on a face button). Its controls, remaps and overrides go to retroarch/backup-<date> on the card. Saves, states, the RetroAchievements account and these settings stay. Press A twice.",
 			"", "ra_reset", { "" }, { "" }, Item::ACTION);
 		const char* W = "Network";
@@ -677,12 +679,27 @@ namespace banana
 			add(S, "gear", "Credits", "The people who made this version of BananaOS: development, translations, testing and thanks. A opens the list.", "", "credits", {}, {}, Item::PAGE);
 		add(S, "gear", "Restart", "Restarts the handheld. Press A twice.", "", "reboot", { "" }, { "" }, Item::ACTION);
 		add(S, "gear", "Shut down", "Turns the handheld off. Press A twice. (Or hold the power button.)", "", "poweroff", { "" }, { "" }, Item::ACTION);
-		add(S, "gear", "Hotkeys", "The buttons that do something everywhere, in the menu and in each emulator.", "", "hotkeys", {}, {}, Item::PAGE);
-		// the Hotkeys page (System > Hotkeys): what each does, from bananad, the menu, SuperDrastic's drastic.cfg and menu,
-		// BananaDS's menu and RetroArch's joypad profile (retrogame_joypad.cfg: F is its hotkey). Rows to read, no values
+		add(S, "gear", "Hotkeys", "The buttons that do something everywhere and in the menu. Each emulator's own: Nintendo DS > SuperDrastic hotkeys and BananaDS hotkeys, Other systems > RetroArch hotkeys.", "", "hotkeys", {}, {}, Item::PAGE);
+		// the hotkey pages: System > Hotkeys (everywhere and the menu) and one for each emulator (from Nintendo DS and
+		// Other systems). What each does, from bananad, the menu, SuperDrastic's drastic.cfg and menu, BananaDS's menu and
+		// RetroArch's joypad profile (retrogame_joypad.cfg: F is its hotkey). Rows to read: the key "hk" and what it does,
+		// or "hk:" and the Buttons row whose job it shows as it is now (L2, R2, L3 and R3: nds_btn_*, ra_btn_*)
 		{
-			const char* HK = "Hotkeys";
-			struct { const char* keys; const char* what; const char* help; } rows[] = {
+			struct Row { const char* keys; const char* what; const char* help; };
+			auto rows = [&](const char* section, const char* icon, std::initializer_list<Row> rs)
+			{
+				for (auto& r : rs) add(section, icon, r.keys, r.help, "", "hk", { r.what }, { "" }, Item::INFO);
+			};
+			auto buttons = [&](const char* section, const char* icon, const char* prefix, const char* help)
+			{
+				for (const char* b : { "L2", "R2", "L3", "R3" })
+				{
+					std::string key = std::string("hk:") + prefix + (char)tolower(b[0]) + b[1];
+					std::string h = std::string(help) + (std::string(b) == "R3" ? " (The RG DS Plus has no R3.)" : "");
+					add(section, icon, b, h.c_str(), "", key.c_str(), {}, {}, Item::INFO);
+				}
+			};
+			rows("Hotkeys", "gear", {
 				{ "Volume keys", "Volume", "Everywhere, in games too: the speakers, or the headphones while they are in." },
 				{ "F + volume", "Brightness", "Everywhere, in games too: both screens' backlights together. Each screen's own: Settings > Display & sound." },
 				{ "Power", "Sleep", "Everywhere: a press sleeps (a game is paused where it is), a press wakes. Closing the lid does the same." },
@@ -691,26 +708,36 @@ namespace banana
 				{ "Menu: SELECT", "Search", "In the menu: search every system's games by name." },
 				{ "Menu: X", "Resume, options", "On the home row: the system's last game. On a game: its page (name, box art, emulator, delete)." },
 				{ "Menu: L / R", "A page", "In a game list or a settings list: five at a time. Up and down too." },
-				{ "DS: F + R", "Save state", "DS games, both emulators: the emulator's quick save state (BananaDS: slot 1)." },
-				{ "DS: F + L", "Load state", "DS games, both emulators: loads it back." },
-				{ "DS: L2", "Swap the screens", "DS games, both emulators, as F + SELECT. Settings > Nintendo DS > Buttons gives L2, R2, L3 and R3 other jobs." },
-				{ "DS: R2", "Fast-forward", "DS games, both emulators: on, and off again." },
-				{ "DS: L3", "Blow on the mic", "DS games, both emulators: held, the game hears a blow (candles, pinwheels, Nintendogs), the microphone on or off." },
-				{ "SuperDrastic: F", "Its menu", "DS games in SuperDrastic: save, load, quick settings (volume, brightness), quit." },
-				{ "SuperDrastic: F + START", "Quit", "DS games in SuperDrastic: back to the menu, the spot saved to resume from when Quick resume is on." },
-				{ "SuperDrastic: F + SELECT", "Swap the screens", "DS games in SuperDrastic: the DS's top screen on the bottom panel and its bottom screen on the top one (touch follows it: the RG DS's top touchscreen; on the RG DS Plus no touch while swapped), and back. Kept for each game." },
-				{ "BananaDS: F / HOME", "Its menu", "DS games in BananaDS: save, load, quick settings, achievements, quit." },
-				{ "BananaDS: F + SELECT", "Swap the screens", "DS games in BananaDS: the DS's top screen on the bottom panel and its bottom screen on the top one (touch follows it: the RG DS's top touchscreen; on the RG DS Plus no touch while swapped), and back. Kept for each game." },
-				{ "BananaDS: F + START", "Quit", "DS games in BananaDS: your spot saved, then back to the menu." },
-				{ "RetroArch: F + X", "Its menu", "The other systems (RetroArch). Settings > Other systems > RetroArch hotkeys Off leaves this and F + START only." },
-				{ "RetroArch: F + START", "Quit", "The other systems (RetroArch): back to the menu." },
-				{ "RetroArch: F + R / F + L", "Save / load state", "The other systems (RetroArch): the current state slot." },
-				{ "RetroArch: F + R2", "Fast-forward", "The other systems (RetroArch): on, and off again." },
-				{ "RetroArch: F + L2", "Rewind", "The other systems (RetroArch): held, the game runs backwards." },
-				{ "RetroArch: R2", "Fast-forward", "GBA, Game Boy, NES, SNES and Mega Drive games: on, and off again. Settings > Other systems > Buttons gives L2, R2, L3 and R3 other jobs." },
-				{ "RetroArch: F + Y", "Frame rate", "The other systems (RetroArch): shown in a corner, or not." },
-			};
-			for (auto& r : rows) add(HK, "gear", r.keys, r.help, "", "hk", { r.what }, { "" }, Item::INFO);
+			});
+			const char* dsHelp = "In a DS game, in both emulators, as Nintendo DS > Buttons has it now; that page gives it another job.";
+			rows("SuperDrastic hotkeys", "nds", {
+				{ "F", "Its menu", "In SuperDrastic: save, load, quick settings (volume, brightness), quit." },
+				{ "F + START", "Quit", "In SuperDrastic: back to the menu, the spot saved to resume from when Quick resume is on." },
+				{ "F + SELECT", "Swap the screens", "In SuperDrastic: the DS's top screen on the bottom panel and its bottom screen on the top one (touch follows it: the RG DS's top touchscreen; on the RG DS Plus no touch while swapped), and back. Kept for each game." },
+				{ "F + R", "Save state", "In SuperDrastic: DraStic's quick save state." },
+				{ "F + L", "Load state", "In SuperDrastic: loads it back." },
+			});
+			buttons("SuperDrastic hotkeys", "nds", "nds_btn_", dsHelp);
+			rows("BananaDS hotkeys", "nds", {
+				{ "F / HOME", "Its menu", "In BananaDS: save, load, quick settings, achievements, quit." },
+				{ "F + START", "Quit", "In BananaDS: your spot saved, then back to the menu." },
+				{ "F + SELECT", "Swap the screens", "In BananaDS: the DS's top screen on the bottom panel and its bottom screen on the top one (touch follows it: the RG DS's top touchscreen; on the RG DS Plus no touch while swapped), and back. Kept for each game." },
+				{ "F + R", "Save state", "In BananaDS: to slot 1." },
+				{ "F + L", "Load state", "In BananaDS: slot 1, loaded back." },
+			});
+			buttons("BananaDS hotkeys", "nds", "nds_btn_", dsHelp);
+			// RetroArch's: its F hotkeys switched on or off here too (ra_hotkeys, read by run-retroarch)
+			add("RetroArch hotkeys", "gamepad", "F hotkeys", "F + a button in a game: X the menu, Start quits, L and R load and save a state, Y the frame counter, L2 rewind, R2 fast forward. Off: only F + X and F + Start, the two needed to get out, and none bound in RetroArch's own menu either.",
+				menu, "ra_hotkeys", { "On", "Off" }, { "on", "off" });
+			rows("RetroArch hotkeys", "gamepad", {
+				{ "F + X", "Its menu", "In RetroArch's games. F hotkeys Off, above, leaves this and F + START only." },
+				{ "F + START", "Quit", "In RetroArch's games: back to the menu." },
+				{ "F + R / F + L", "Save / load state", "In RetroArch's games: the current state slot." },
+				{ "F + R2", "Fast-forward", "In RetroArch's games: on, and off again." },
+				{ "F + L2", "Rewind", "In RetroArch's games: held, the game runs backwards." },
+				{ "F + Y", "Frame rate", "In RetroArch's games: shown in a corner, or not." },
+			});
+			buttons("RetroArch hotkeys", "gamepad", "ra_btn_", "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own), as Other systems > Buttons has it now; that page gives it another job.");
 		}
 		// Power: Y on the groups (no tile of its own: the grid is the six above), straight from the home screen's START
 		// the DS buttons page (Nintendo DS > Buttons): L2, R2, L3 and R3's jobs in banana/settings.conf (nds_btn_*, defaults
@@ -1066,6 +1093,9 @@ namespace banana
 	static const Subpage SUBPAGES[] = {
 		{ "shelves", "Shown systems" },
 		{ "hotkeys", "Hotkeys" },
+		{ "hotkeys_sd", "SuperDrastic hotkeys" },
+		{ "hotkeys_bds", "BananaDS hotkeys" },
+		{ "hotkeys_ra", "RetroArch hotkeys" },
 		{ "ds_buttons", "DS buttons" },
 		{ "ra_buttons", "Other systems buttons" },
 		{ "homesync", "Home server" },
@@ -2034,7 +2064,7 @@ namespace banana
 	{
 		const Item& cur = items[i];
 		std::string help = cur.help;
-		if (cur.kind == Item::INFO && cur.key != "hk") help = about;
+		if (cur.kind == Item::INFO && cur.key.compare(0, 2, "hk") != 0) help = about;	// (not a hotkeys page's row)
 		if (cur.key == "wifi") help = "Wi-Fi: " + wifiInfo + ". Network, below, joins one; networks can also be written in banana/wifi.conf on a computer (see banana/README.txt).";
 		if (cur.key == "ssh")
 			help = "For working on Banana itself: ssh root@" + (ip.empty() ? std::string("<address>") : ip) +
@@ -2214,6 +2244,10 @@ namespace banana
 			std::string v;
 			if (it.kind == Item::CHOICE || it.kind == Item::BRIGHTNESS || it.kind == Item::VOLUME) v = it.names[it.at];
 			else if (it.kind == Item::ACTION) v = armed == i ? "Press A again" : "";
+			else if (it.kind == Item::INFO && it.key.compare(0, 3, "hk:") == 0)	// (a hotkeys page's L2 to R3: its Buttons row's job now)
+			{
+				for (auto& b : items) if (b.key == it.key.substr(3) && b.at < (int)b.names.size()) v = b.names[b.at];
+			}
 			else if (it.kind == Item::INFO) v = it.key == "hk" && !it.names.empty() ? it.names[0] : "";	// (Hotkeys: what it does)
 			// a page's row: Network the network it is on; Update the packages waiting on the card; the others nothing
 			else if (it.kind == Item::PAGE && it.key == "network") v = wstat.connected ? fit(wstat.ssid, true, 19, 300) : (wifiOn() ? "Choose" : "");

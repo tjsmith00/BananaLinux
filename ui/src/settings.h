@@ -567,7 +567,7 @@ namespace banana
 		std::string gTitle, gSystem;
 		int gScreen = 1, gFlash = -1, gDown = -1;
 		bool gTouch = true;
-		bool gHotkeys = true;	// Settings > Other systems > RetroArch hotkeys: off, F + R and the like do nothing
+		bool gHotkeys = true;	// Settings > Other systems > RetroArch hotkeys > F hotkeys: off, F + R and the like do nothing
 		double gFlashUntil = 0;
 		int gSeen = -1;						// the watch's generation last drawn
 		int awardsSeen = 0; bool wake = false;	// (gameWake)

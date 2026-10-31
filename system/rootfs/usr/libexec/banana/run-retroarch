@@ -179,7 +179,7 @@ if [ -n "$u" ]; then
 elif [ -f $A ]; then
     set_cfg cheevos_enable false
 fi
-# Settings > Other systems > RetroArch hotkeys, Off: no F + button shortcuts but the two needed to get out, F + X (the
+# Settings > Other systems > RetroArch hotkeys > F hotkeys, Off: no F + button shortcuts but the two needed to get out, F + X (the
 # menu) and F + Start (quit). RetroArch's hotkeys come from the joypad's autoconfig profile, and a hotkey "unbound" in
 # its menu (nul in retroarch.cfg) falls back to the profile's, which is why one can't be taken away there; so
 # RetroArch gets a copy of the profiles with the other hotkeys left out, and every hotkey in retroarch.cfg as nul

@@ -32,7 +32,7 @@ SSH (for working on Banana itself): put your public key in banana/ssh/authorized
 Settings > Network > SSH, then ssh root@<address>. Keys only, no passwords.
 
 RetroArch (the systems other than the DS): F + a button in a game, F + X its menu, F + Start quits.
-Settings > Other systems > RetroArch hotkeys: Off leaves only those two. A button bound away in RetroArch's
+Settings > Other systems > RetroArch hotkeys > F hotkeys: Off leaves only those two. A button bound away in RetroArch's
 menu (an A that stopped working): Settings > Other systems > Reset RetroArch puts its settings back to Banana's,
 the old ones moved to retroarch/backup-<date>; saves, states and the RetroAchievements account stay.
 
