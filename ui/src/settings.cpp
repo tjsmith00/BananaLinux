@@ -661,7 +661,7 @@ namespace banana
 		}
 		// L2, R2, L3 and R3 alone in RetroArch's games (the page below; run-retroarch, bananad)
 		add(O, "gamepad", "Buttons", "What L2, R2, L3 and R3 do alone in a game: the game's own button, or fast-forward, save or load a state, RetroArch's menu, pause, a screenshot, nothing. Not PlayStation and N64, whose games use them. F + R saves and F + L loads a state, as on the DS.", "", "ra_buttons", {}, {}, Item::PAGE);
-		add(O, "gamepad", "RetroArch hotkeys", "The buttons that do something in RetroArch's games: F + a button (its menu, quitting, save states, fast-forward, rewind), those switched off but two, and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_ra", {}, {}, Item::PAGE);
+		add(O, "gamepad", "RetroArch hotkeys", "The buttons that do something in RetroArch's games: F + a button (its menu, quitting, save states, fast-forward, rewind) and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_ra", {}, {}, Item::PAGE);
 		add(O, "gamepad", "Reset RetroArch", "RetroArch's settings back to Banana's: for a button bound away in RetroArch's menu (an A that does something else, a hotkey on a face button). Its controls, remaps and overrides go to retroarch/backup-<date> on the card. Saves, states, the RetroAchievements account and these settings stay. Press A twice.",
 			"", "ra_reset", { "" }, { "" }, Item::ACTION);
 		const char* W = "Network";
@@ -776,11 +776,8 @@ namespace banana
 				{ "F + L", "Load state", "In BananaDS: slot 1, loaded back." },
 			});
 			buttonRows("BananaDS hotkeys", "nds", dsHelp, "", "nds_btn_", "", {}, {}, Item::INFO);
-			// RetroArch's: its F hotkeys switched on or off here too (ra_hotkeys, read by run-retroarch)
-			add("RetroArch hotkeys", "gamepad", "F hotkeys", "F + a button in a game: X the menu, Start quits, L and R load and save a state, Y the frame counter, L2 rewind, R2 fast forward. Off: only F + X and F + Start, the two needed to get out, and none bound in RetroArch's own menu either.",
-				menu, "ra_hotkeys", { "On", "Off" }, { "on", "off" });
 			rows("RetroArch hotkeys", "gamepad", {
-				{ "F + X", "Its menu", "In RetroArch's games. F hotkeys Off, above, leaves this and F + START only." },
+				{ "F + X", "Its menu", "In RetroArch's games: RetroArch's own menu." },
 				{ "F + START", "Quit", "In RetroArch's games: back to the menu." },
 				{ "F + R / F + L", "Save / load state", "In RetroArch's games: the current state slot." },
 				{ "F + R2", "Fast-forward", "In RetroArch's games: on, and off again." },
@@ -788,19 +785,16 @@ namespace banana
 				{ "F + Y", "Frame rate", "In RetroArch's games: shown in a corner, or not." },
 			});
 			buttonRows("RetroArch hotkeys", "gamepad", "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own), as Other systems > Buttons has it now; that page gives it another job. A system's own page, below, can give it another job in that system's games alone.", "", "ra_btn_", "", {}, {}, Item::INFO);
-			// each system's own page, a row for it at the end of RetroArch's: its F hotkeys and L2, R2, L3 and R3, the
-			// shared ones above ("Same as all", the first: a card without the line) or its own (ra_hotkeys.<system>,
-			// ra_btn_l2.<system>...; run-retroarch). PlayStation and N64 games use L2 to R3: theirs start as the game's own
+			// each system's own page, a row for it at the end of RetroArch's: its L2, R2, L3 and R3, the shared ones
+			// above ("Same as all", the first: a card without the line) or its own (ra_btn_l2.<system>...; run-retroarch). PlayStation and N64 games use L2 to R3: theirs start as the game's own
 			// and don't follow the shared ones
 			for (const auto& sys : RA_SYSTEMS)
-				add("RetroArch hotkeys", "gamepad", sys.label, "This system's own hotkeys: F hotkeys on or off, and L2, R2, L3 and R3's jobs in its games alone. Same as all follows the rows above.",
+				add("RetroArch hotkeys", "gamepad", sys.label, "This system's own L2, R2, L3 and R3: their jobs in its games alone. Same as all follows the rows above.",
 					"", raHotkeysKey(sys).c_str(), {}, {}, Item::PAGE);
 			for (const auto& sys : RA_SYSTEMS)
 			{
 				const std::string sec = raHotkeysSection(sys), id = sys.id;
 				const bool own = id == "psx" || id == "n64";
-				add(sec.c_str(), "gamepad", "F hotkeys", "F + a button in this system's games (RetroArch hotkeys has the list). Same as all: as RetroArch hotkeys > F hotkeys. Off: only F + X and F + Start, the two needed to get out.",
-					menu, ("ra_hotkeys." + id).c_str(), { "Same as all", "On", "Off" }, { "all", "on", "off" });
 				std::vector<std::string> names = { "Game's own", "Fast-forward", "Save state", "Load state", "Menu", "Pause", "Screenshot", "Nothing" };
 				std::vector<std::string> values = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none" };
 				if (!own) { names.insert(names.begin(), "Same as all"); values.insert(values.begin(), "all"); }
@@ -6574,13 +6568,9 @@ namespace banana
 		}
 	};
 
-	void Settings::gameOpen(const std::string& title, const std::string& system, int screen, bool touch, const std::string& systemId)
+	void Settings::gameOpen(const std::string& title, const std::string& system, int screen, bool touch)
 	{
 		gTitle = title; gSystem = system; gScreen = screen; gTouch = touch;
-		// the system's own F hotkeys (RetroArch hotkeys > the system), else the shared ones, as run-retroarch reads them
-		std::string hk = systemId.empty() ? "" : getConfValue(data + "/settings.conf", "ra_hotkeys." + systemId, "");
-		if (hk.empty() || hk == "all") hk = getConfValue(data + "/settings.conf", "ra_hotkeys", "on");
-		gHotkeys = hk != "off";
 		gFlash = gDown = -1; gSeen = -1; awardsSeen = 0; wake = false;
 		pkView = PK_PARTY; pkMon = pkMonPage = 0; pkBattle = false; pkPocket = pkBagPage = pkDexPage = pkDexNat = 0; pkGoalKey.clear(); pkGoalTeam.clear(); pkWildPage = 0; pkWildKey = -1;
 		gcView = gcomp::P_STATUS; gcScreen = 0; gcScreens = 1; gcList = gcRow = -1; gcBattle = false; gcHits.clear();
@@ -6901,14 +6891,13 @@ namespace banana
 			std::string lb = lang::tr("Second screen (RetroArch games)", GTILES[i].label);
 			float lw = text(lb, true, 19, 0, 0, fg, false, 0, true);
 			text(lb, true, 19, x + 57 - lw / 2, y + 60, fg);
-			std::string kk = gHotkeys || i == 2 || i == 4 ? GTILES[i].keys : "";	// (hotkeys off: the menu's and quit's alone)
+			std::string kk = GTILES[i].keys;
 			float kw = text(kk, false, 14, 0, 0, p.muted, false, 0, true);
 			text(kk, false, 14, x + 57 - kw / 2, y + 90, on ? p.onPickAccent : p.muted);
 		}
 		if (pk) { pokeTabs(p); be->endScreen(); return; }	// (the companion's tab bar where the hint was)
 		if (gc) { gcTabs(p); be->endScreen(); return; }
-		std::string hint = !gHotkeys ? (gTouch ? "Tap a tile; F + X opens RetroArch's menu, F + Start quits" : "F + X opens RetroArch's menu, F + Start quits")
-			: gTouch ? "Tap a tile, or hold F with the button under it" : "Hold F with the button under each tile";
+		std::string hint = gTouch ? "Tap a tile, or hold F with the button under it" : "Hold F with the button under each tile";
 		float hw = text(hint, false, 15, 0, 0, p.muted, false, 0, true);
 		text(hint, false, 15, 320 - hw / 2, 438, p.muted);
 		be->endScreen();

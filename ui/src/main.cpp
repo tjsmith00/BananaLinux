@@ -2122,14 +2122,14 @@ int main(int argc, char** argv)
 	// too, with the game on the bottom) turned into RetroArch's commands through the pipe
 	// on its stdin (stdin_cmd_enable), until the game ends
 	// (outFd: RetroArch's stdout, for the Pokémon companion's replies; -1 without one)
-	auto gamePanel = [&](pid_t pid, int& status, int gameScreen, int cmdFd, int outFd, const std::string& title, const std::string& sysName, const std::string& sysId)
+	auto gamePanel = [&](pid_t pid, int& status, int gameScreen, int cmdFd, int outFd, const std::string& title, const std::string& sysName)
 	{
 		const int panelScreen = 1 - gameScreen;
 		{
 			std::lock_guard<std::mutex> l(worker.uiLock);
 			settingsView.companion = outFd >= 0 && companion.active() ? &companion : nullptr;
 			settingsView.gameComp = outFd >= 0 && gameComp.active() ? &gameComp : nullptr;
-			settingsView.gameOpen(title, sysName, panelScreen, input.hasTouch(panelScreen), sysId);
+			settingsView.gameOpen(title, sysName, panelScreen, input.hasTouch(panelScreen));
 		}
 		be.invalidate();
 		bool want = true;
@@ -2349,7 +2349,7 @@ int main(int argc, char** argv)
 			std::ofstream("/run/banana/game.pid") << pid << "\n";	// bananad: the game to pause before a sleep
 			if (panel)
 			{
-				gamePanel(pid, status, gameScreen, cmdFd, outFd, lib.gameAt(game).title, sd.name, sd.id);
+				gamePanel(pid, status, gameScreen, cmdFd, outFd, lib.gameAt(game).title, sd.name);
 			}
 			else while (waitpid(pid, &status, 0) < 0 && errno == EINTR) {}
 			unlink("/run/banana/game.pid");

@@ -312,9 +312,9 @@ for size in 640x480 1024x768; do
     rlog=$OUT/$size-reset.log
     # (ra_vsync = lcd: a value from another key's list, which the start (normalizeSettings) must put back; the system
     # reset leaves ra_vsync alone)
-    # (a system's own RetroArch button, ra_btn_l2.snes, an emulator key the system reset keeps; ra_hotkeys.gba = bogus
+    # (a system's own RetroArch button, ra_btn_l2.snes, an emulator key the system reset keeps; ra_btn_r3.gba = bogus
     # a value its list hasn't, which the start drops: no line is "Same as all")
-    for kv in "theme = light" "sounds = off" "core.gba = mgba" "ra_shader = crt" "ra_vsync = lcd" "ra_btn_l2.snes = load" "ra_hotkeys.gba = bogus"; do
+    for kv in "theme = light" "sounds = off" "core.gba = mgba" "ra_shader = crt" "ra_vsync = lcd" "ra_btn_l2.snes = load" "ra_btn_r3.gba = bogus"; do
         k=${kv%% *}
         grep -q "^$k = " "$FX/data/settings.conf" && sed -i "s/^$k = .*/$kv/" "$FX/data/settings.conf" || printf '%s\n' "$kv" >> "$FX/data/settings.conf"
     done
@@ -330,7 +330,7 @@ for size in 640x480 1024x768; do
     grep -q '^core.gba = mgba' "$FX/data/settings.conf" || { echo "FAIL $size: system reset wiped an emulator core: $(grep '^core.gba' "$FX/data/settings.conf")"; fail=1; }
     grep -q '^ra_shader = crt' "$FX/data/settings.conf" || { echo "FAIL $size: system reset wiped ra_shader"; fail=1; }
     grep -q '^ra_btn_l2.snes = load' "$FX/data/settings.conf" || { echo "FAIL $size: a system's own RetroArch button was lost: $(grep '^ra_btn_l2' "$FX/data/settings.conf" | tr '\n' ' ')"; fail=1; }
-    grep -q '^ra_hotkeys.gba' "$FX/data/settings.conf" && { echo "FAIL $size: an invalid ra_hotkeys.gba was kept"; fail=1; }
+    grep -q '^ra_btn_r3.gba' "$FX/data/settings.conf" && { echo "FAIL $size: an invalid ra_btn_r3.gba was kept"; fail=1; }
     # down six from the first row to Reset emulator settings, A twice (theme and sounds are already back)
     run_reset "home 0; press start; press r; press r; press r; press r; press r; press a; press down; press down; press down; press down; press down; press down; press a; press a; wait 300; shot reset-emulator"
     grep -q '^core.gba = gpsp' "$FX/data/settings.conf" || { echo "FAIL $size: emulator reset didn't restore core.gba: $(grep '^core.gba' "$FX/data/settings.conf")"; fail=1; }

@@ -74,7 +74,6 @@ namespace banana
 			{ "ra_border", "off", ENUM, ON_OFF, 0, 0, true },
 			{ "ra_audio_latency", "64", ENUM, LATENCY, 0, 0, true },
 			{ "ra_vsync", "on", ENUM, ON_OFF, 0, 0, true },
-			{ "ra_hotkeys", "on", ENUM, ON_OFF, 0, 0, true, true },
 			{ "ra_btn_l2", "game", ENUM, RA_BTN, 0, 0, true, true },
 			{ "ra_btn_r2", "ff", ENUM, RA_BTN, 0, 0, true, true },
 			{ "ra_btn_l3", "game", ENUM, RA_BTN, 0, 0, true, true },
@@ -109,8 +108,8 @@ namespace banana
 			return nullptr;
 		}
 
-		// <key>.<system> for a perSystem key (Other systems > RetroArch hotkeys > a system's page: ra_hotkeys.snes,
-		// ra_btn_l2.gba...; run-retroarch): the key's own values and "all", the shared key's. No default: a card without
+		// <key>.<system> for a perSystem key (Other systems > RetroArch hotkeys > a system's page: ra_btn_l2.gba,
+		// ra_btn_r2.snes...; run-retroarch): the key's own values and "all", the shared key's. No default: a card without
 		// the line (or a reset) has the shared one, and PlayStation and N64 their game's own buttons
 		const KeyDef* findSystem(const std::string& key)
 		{
