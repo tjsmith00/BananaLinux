@@ -22,6 +22,7 @@ namespace banana
 			const char* const* allowed;	// ENUM
 			int min, max;				// INTEGER
 			bool emulator = false;		// EMULATOR scope (also true for Type CORE below)
+			bool perSystem = false;		// <key>.<system> too: a system's own (findSystem)
 		};
 
 		// each list ends in nullptr: valid() walks it to the end
@@ -73,11 +74,11 @@ namespace banana
 			{ "ra_border", "off", ENUM, ON_OFF, 0, 0, true },
 			{ "ra_audio_latency", "64", ENUM, LATENCY, 0, 0, true },
 			{ "ra_vsync", "on", ENUM, ON_OFF, 0, 0, true },
-			{ "ra_hotkeys", "on", ENUM, ON_OFF, 0, 0, true },
-			{ "ra_btn_l2", "game", ENUM, RA_BTN, 0, 0, true },
-			{ "ra_btn_r2", "ff", ENUM, RA_BTN, 0, 0, true },
-			{ "ra_btn_l3", "game", ENUM, RA_BTN, 0, 0, true },
-			{ "ra_btn_r3", "game", ENUM, RA_BTN, 0, 0, true },
+			{ "ra_hotkeys", "on", ENUM, ON_OFF, 0, 0, true, true },
+			{ "ra_btn_l2", "game", ENUM, RA_BTN, 0, 0, true, true },
+			{ "ra_btn_r2", "ff", ENUM, RA_BTN, 0, 0, true, true },
+			{ "ra_btn_l3", "game", ENUM, RA_BTN, 0, 0, true, true },
+			{ "ra_btn_r3", "game", ENUM, RA_BTN, 0, 0, true, true },
 			{ "nds_emulator", "superdrastic", ENUM, NDS, 0, 0, true },
 			{ "nds_btn_l2", "swap", ENUM, NDS_BTN, 0, 0, true },
 			{ "nds_btn_r2", "ff", ENUM, NDS_BTN, 0, 0, true },
@@ -108,20 +109,27 @@ namespace banana
 			return nullptr;
 		}
 
-		// Other systems > RetroArch hotkeys > a system's page: its own F hotkeys and L2, R2, L3 and R3
-		// (ra_hotkeys.<system>, ra_btn_l2.<system>...; run-retroarch). "all": the shared key's value. No default: a card
-		// without the line (or a reset) has the shared one, and PlayStation and N64 their game's own buttons
-		const char* const RA_BTN_SYS[] = { "all", "game", "ff", "save", "load", "menu", "pause", "screenshot", "none", nullptr };
-		const char* const ALL_ON_OFF[] = { "all", "on", "off", nullptr };
+		// <key>.<system> for a perSystem key (Other systems > RetroArch hotkeys > a system's page: ra_hotkeys.snes,
+		// ra_btn_l2.gba...; run-retroarch): the key's own values and "all", the shared key's. No default: a card without
+		// the line (or a reset) has the shared one, and PlayStation and N64 their game's own buttons
 		const KeyDef* findSystem(const std::string& key)
 		{
-			static const KeyDef BTN = { "", "", ENUM, RA_BTN_SYS, 0, 0, true }, HK = { "", "", ENUM, ALL_ON_OFF, 0, 0, true };
 			size_t dot = key.find('.');
 			if (dot == std::string::npos || dot + 1 == key.size()) return nullptr;
-			std::string base = key.substr(0, dot);
-			if (base == "ra_hotkeys") return &HK;
-			if (base == "ra_btn_l2" || base == "ra_btn_r2" || base == "ra_btn_l3" || base == "ra_btn_r3") return &BTN;
-			return nullptr;
+			const KeyDef* base = find(key.substr(0, dot));
+			if (!base || !base->perSystem) return nullptr;
+			// (each base's made once: "all" before its values, the list's storage kept beside the KeyDef that points at it)
+			static std::map<const KeyDef*, std::pair<std::vector<const char*>, KeyDef>> made;
+			auto it = made.find(base);
+			if (it == made.end())
+			{
+				std::vector<const char*> allowed = { "all" };
+				for (const char* const* a = base->allowed; a && *a; a++) allowed.push_back(*a);
+				allowed.push_back(nullptr);
+				it = made.emplace(base, std::make_pair(std::move(allowed), KeyDef{ "", "", ENUM, nullptr, 0, 0, true })).first;
+				it->second.second.allowed = it->second.first.data();
+			}
+			return &it->second.second;
 		}
 
 		// a key settings.conf knows: the schema's, a core.<system> or a system's own hotkeys and buttons

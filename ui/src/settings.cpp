@@ -475,6 +475,19 @@ namespace banana
 			it.names = names; it.values = values; it.kind = kind;
 			items.push_back(it);
 		};
+		// L2, R2, L3 and R3, a row each (keys <prefix>l2<suffix>...: nds_btn_l2, ra_btn_r3.snes), R3's help saying the RG DS
+		// Plus has none. As INFO rows (a hotkeys page's) they show those keys' rows as they are now (mirror), key "hk"
+		auto buttonRows = [&](const char* section, const char* icon, const std::string& help, const std::string& file, const std::string& prefix,
+			const std::string& suffix, const std::vector<std::string>& names, const std::vector<std::string>& values, Item::Kind kind = Item::CHOICE)
+		{
+			for (const char* b : { "L2", "R2", "L3", "R3" })
+			{
+				const std::string key = prefix + (char)tolower(b[0]) + b[1] + suffix;
+				const std::string h = help + (std::string(b) == "R3" ? " (The RG DS Plus has no R3.)" : "");
+				add(section, icon, b, h.c_str(), file, kind == Item::INFO ? "hk" : key.c_str(), names, values, kind);
+				if (kind == Item::INFO) items.back().mirror = key;
+			}
+		};
 		const char* D = "Display & sound";
 		{
 			// Banana's three, then the themes in banana/themes on the card and the image's examples (theme.h)
@@ -728,22 +741,13 @@ namespace banana
 		add(S, "gear", "Hotkeys", "The buttons that do something everywhere and in the menu. Each emulator's own: Nintendo DS > SuperDrastic > Hotkeys and BananaDS > Hotkeys, Other systems > RetroArch hotkeys.", "", "hotkeys", {}, {}, Item::PAGE);
 		// the hotkey pages: System > Hotkeys (everywhere and the menu) and one for each emulator (from Nintendo DS and
 		// Other systems). What each does, from bananad, the menu, SuperDrastic's drastic.cfg and menu, BananaDS's menu and
-		// RetroArch's joypad profile (retrogame_joypad.cfg: F is its hotkey). Rows to read: the key "hk" and what it does,
-		// or "hk:" and the Buttons row whose job it shows as it is now (L2, R2, L3 and R3: nds_btn_*, ra_btn_*)
+		// RetroArch's joypad profile (retrogame_joypad.cfg: F is its hotkey). Rows to read, key "hk": what each does, or
+		// for L2, R2, L3 and R3 their Buttons row's job as it is now (buttonRows' mirror: nds_btn_*, ra_btn_*)
 		{
 			struct Row { const char* keys; const char* what; const char* help; };
 			auto rows = [&](const char* section, const char* icon, std::initializer_list<Row> rs)
 			{
 				for (auto& r : rs) add(section, icon, r.keys, r.help, "", "hk", { r.what }, { "" }, Item::INFO);
-			};
-			auto buttons = [&](const char* section, const char* icon, const char* prefix, const char* help)
-			{
-				for (const char* b : { "L2", "R2", "L3", "R3" })
-				{
-					std::string key = std::string("hk:") + prefix + (char)tolower(b[0]) + b[1];
-					std::string h = std::string(help) + (std::string(b) == "R3" ? " (The RG DS Plus has no R3.)" : "");
-					add(section, icon, b, h.c_str(), "", key.c_str(), {}, {}, Item::INFO);
-				}
 			};
 			rows("Hotkeys", "gear", {
 				{ "Volume keys", "Volume", "Everywhere, in games too: the speakers, or the headphones while they are in." },
@@ -763,7 +767,7 @@ namespace banana
 				{ "F + R", "Save state", "In SuperDrastic: DraStic's quick save state." },
 				{ "F + L", "Load state", "In SuperDrastic: loads it back." },
 			});
-			buttons("SuperDrastic hotkeys", "nds", "nds_btn_", dsHelp);
+			buttonRows("SuperDrastic hotkeys", "nds", dsHelp, "", "nds_btn_", "", {}, {}, Item::INFO);
 			rows("BananaDS hotkeys", "nds", {
 				{ "F / HOME", "Its menu", "In BananaDS: save, load, quick settings, achievements, quit." },
 				{ "F + START", "Quit", "In BananaDS: your spot saved, then back to the menu." },
@@ -771,7 +775,7 @@ namespace banana
 				{ "F + R", "Save state", "In BananaDS: to slot 1." },
 				{ "F + L", "Load state", "In BananaDS: slot 1, loaded back." },
 			});
-			buttons("BananaDS hotkeys", "nds", "nds_btn_", dsHelp);
+			buttonRows("BananaDS hotkeys", "nds", dsHelp, "", "nds_btn_", "", {}, {}, Item::INFO);
 			// RetroArch's: its F hotkeys switched on or off here too (ra_hotkeys, read by run-retroarch)
 			add("RetroArch hotkeys", "gamepad", "F hotkeys", "F + a button in a game: X the menu, Start quits, L and R load and save a state, Y the frame counter, L2 rewind, R2 fast forward. Off: only F + X and F + Start, the two needed to get out, and none bound in RetroArch's own menu either.",
 				menu, "ra_hotkeys", { "On", "Off" }, { "on", "off" });
@@ -783,7 +787,7 @@ namespace banana
 				{ "F + L2", "Rewind", "In RetroArch's games: held, the game runs backwards." },
 				{ "F + Y", "Frame rate", "In RetroArch's games: shown in a corner, or not." },
 			});
-			buttons("RetroArch hotkeys", "gamepad", "ra_btn_", "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own), as Other systems > Buttons has it now; that page gives it another job. A system's own page, below, can give it another job in that system's games alone.");
+			buttonRows("RetroArch hotkeys", "gamepad", "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own), as Other systems > Buttons has it now; that page gives it another job. A system's own page, below, can give it another job in that system's games alone.", "", "ra_btn_", "", {}, {}, Item::INFO);
 			// each system's own page, a row for it at the end of RetroArch's: its F hotkeys and L2, R2, L3 and R3, the
 			// shared ones above ("Same as all", the first: a card without the line) or its own (ra_hotkeys.<system>,
 			// ra_btn_l2.<system>...; run-retroarch). PlayStation and N64 games use L2 to R3: theirs start as the game's own
@@ -803,12 +807,7 @@ namespace banana
 				const std::string help = own
 					? "Alone, in this system's games, which use it: Game's own leaves it the game's button. Another job (fast-forward, a save or load state, RetroArch's menu, pause, a screenshot, nothing) takes it from the game. With F held, it is RetroArch's hotkey."
 					: "Alone, in this system's games. Same as all: as Other systems > Buttons has it. Game's own: the game's button. Fast-forward: on, and off again. Save and load state: the current slot. Menu: RetroArch's. With F held, it is RetroArch's hotkey.";
-				for (const char* b : { "L2", "R2", "L3", "R3" })
-				{
-					std::string key = std::string("ra_btn_") + (char)tolower(b[0]) + b[1] + "." + id;
-					std::string h = help + (std::string(b) == "R3" ? " (The RG DS Plus has no R3.)" : "");
-					add(sec.c_str(), "gamepad", b, h.c_str(), menu, key.c_str(), names, values);
-				}
+				buttonRows(sec.c_str(), "gamepad", help, menu, "ra_btn_", "." + id, names, values);
 			}
 		}
 		// Power: Y on the groups (no tile of its own: the grid is the six above), straight from the home screen's START
@@ -821,11 +820,7 @@ namespace banana
 				"DS A", "DS B", "DS X", "DS Y", "DS L", "DS R", "DS START", "DS SELECT", "Nothing" };
 			const std::vector<std::string> values = { "swap", "ff", "blow", "save", "load", "menu", "a", "b", "x", "y", "l", "r", "start", "select", "none" };
 			const char* help = "In a DS game, in both emulators. Swap screens: as F + SELECT. Fast-forward: on, and off again. Blow on the mic: the game hears a blow while it is held, the microphone on or off. Save and load state: as F + R and F + L. F + a button and HOME keep their own (the Hotkeys page).";
-			add(DB, "nds", "L2", help, menu, "nds_btn_l2", names, values);
-			add(DB, "nds", "R2", help, menu, "nds_btn_r2", names, values);
-			add(DB, "nds", "L3", help, menu, "nds_btn_l3", names, values);
-			const std::string helpR3 = std::string(help) + " (The RG DS Plus has no R3.)";
-			add(DB, "nds", "R3", helpR3.c_str(), menu, "nds_btn_r3", names, values);
+			buttonRows(DB, "nds", help, menu, "nds_btn_", "", names, values);
 			add(DB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 swaps the screens, R2 fast-forwards, L3 blows on the mic, R3 does nothing. Press A twice.",
 				"", "nds-reset-ds-buttons", { "" }, { "" }, Item::ACTION);
 		}
@@ -836,18 +831,13 @@ namespace banana
 			const std::vector<std::string> names = { "Game's own", "Fast-forward", "Save state", "Load state", "Menu", "Pause", "Screenshot", "Nothing" };
 			const std::vector<std::string> values = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none" };
 			const char* help = "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own). Game's own: the game's button, as before. Fast-forward: on, and off again (as F + R2). Save and load state: the current slot (as F + R and F + L). Menu: RetroArch's (as F + X). With F held, the button is RetroArch's hotkey, as on the Hotkeys page.";
-			add(RB, "gamepad", "L2", help, menu, "ra_btn_l2", names, values);
-			add(RB, "gamepad", "R2", help, menu, "ra_btn_r2", names, values);
-			add(RB, "gamepad", "L3", help, menu, "ra_btn_l3", names, values);
-			const std::string helpR3 = std::string(help) + " (The RG DS Plus has no R3.)";
-			add(RB, "gamepad", "R3", helpR3.c_str(), menu, "ra_btn_r3", names, values);
+			buttonRows(RB, "gamepad", help, menu, "ra_btn_", "", names, values);
 		}
 		const char* PW = "Power";
 		add(PW, "moon", "Sleep", "The handheld sleeps, as with a press of the power button; a game running is paused. Press the power button to wake it.", "", "sleep", { "" }, { "" }, Item::ACTION);
 		add(PW, "gear", "Restart", "Restarts the handheld. Press A twice.", "", "reboot", { "" }, { "" }, Item::ACTION);
 		add(PW, "gear", "Shut down", "Turns the handheld off. Press A twice. (Or hold the power button.)", "", "poweroff", { "" }, { "" }, Item::ACTION);
-		// the Home server page (Network > Home server), a section of its own as Hotkeys is (after the
-		// sections with tiles: the grid is the groups in order)
+		// the Home server page (Network > Home server)
 		const char* HS = "Home server";
 		add(HS, "phone", "Server", "", "", "hs_server", {}, {}, Item::PAGE);
 		add(HS, "phone", "Sync now", "Copies the server's games (with their covers and names) to the card and syncs the saves both ways. It carries on in the background; the handheld doesn't sleep while games download. Files of your own are never replaced or deleted: only the ones a sync put there.",
@@ -1166,8 +1156,9 @@ namespace banana
 	}
 
 	// the subpages: a section with no tile on the groups' grid, opened by A (or RIGHT) on a PAGE row of another
-	// section (its key), B there going back to that row. A new subpage is a line here and its rows in build()
-	struct Subpage { std::string key, section; };
+	// section (its key), B there going back to that row. A new subpage is a line here and its rows in build(). summary:
+	// a row on the page whose value its row shows, the thing most worth knowing without opening it ("" none)
+	struct Subpage { std::string key, section, summary; };
 	static const std::vector<Subpage>& subpages()
 	{
 		static const std::vector<Subpage> all = []
@@ -1180,11 +1171,11 @@ namespace banana
 				{ "hotkeys_sd", "SuperDrastic hotkeys" },
 				{ "hotkeys_bds", "BananaDS hotkeys" },
 				{ "hotkeys_ra", "RetroArch hotkeys" },
-				{ "ra_second", "Second screen" },
-				{ "ra_picture", "Picture & sound" },
+				{ "ra_second", "Second screen", "retroarch_panel" },
+				{ "ra_picture", "Picture & sound", "ra_shader" },
 				{ "ra_cores", "Emulators" },
-				{ "net_bt", "Bluetooth" },
-				{ "net_share", "File sharing" },
+				{ "net_bt", "Bluetooth", "bluetooth" },
+				{ "net_share", "File sharing", "share" },
 				{ "sys_updates", "Updates" },
 				{ "sys_boxart", "Box art" },
 				{ "menu_look", "Menu look" },
@@ -1197,15 +1188,6 @@ namespace banana
 			return v;
 		}();
 		return all;
-	}
-	// a page's row shows the value of one row on its page: the thing most worth knowing without opening it
-	static std::string pageSummary(const std::string& pageKey)
-	{
-		static const struct { const char* page; const char* row; } S[] = {
-			{ "net_bt", "bluetooth" }, { "net_share", "share" }, { "ra_second", "retroarch_panel" }, { "ra_picture", "ra_shader" },
-		};
-		for (auto& s : S) if (pageKey == s.page) return s.row;
-		return "";
 	}
 	static const Subpage* subpageFrom(const std::string& key)
 	{
@@ -1479,6 +1461,11 @@ namespace banana
 		}
 	}
 
+	const Settings::Item* Settings::itemByKey(const std::string& key) const
+	{
+		for (auto& it : items) if (it.key == key) return &it;
+		return nullptr;
+	}
 	std::vector<std::string> Settings::sectionPath(const std::string& section) const
 	{
 		std::vector<std::string> path = { section };
@@ -1486,9 +1473,9 @@ namespace banana
 		{
 			const Subpage* s = subpageOf(path.front());
 			if (!s) break;
-			auto it = std::find_if(items.begin(), items.end(), [&](const Item& i) { return i.key == s->key; });
-			if (it == items.end()) break;
-			path.insert(path.begin(), it->section);
+			const Item* row = itemByKey(s->key);
+			if (!row) break;
+			path.insert(path.begin(), row->section);
 		}
 		return path;
 	}
@@ -2174,7 +2161,7 @@ namespace banana
 	{
 		const Item& cur = items[i];
 		std::string help = cur.help;
-		if (cur.kind == Item::INFO && cur.key.compare(0, 2, "hk") != 0) help = about;	// (not a hotkeys page's row)
+		if (cur.kind == Item::INFO && cur.key != "hk") help = about;	// (Hotkeys' rows have their own)
 		if (cur.key == "wifi") help = "Wi-Fi: " + wifiInfo + ". Network, below, joins one; networks can also be written in banana/wifi.conf on a computer (see banana/README.txt).";
 		if (cur.key == "ssh")
 			help = "For working on Banana itself: ssh root@" + (ip.empty() ? std::string("<address>") : ip) +
@@ -2373,26 +2360,21 @@ namespace banana
 			std::string v;
 			if (it.kind == Item::CHOICE || it.kind == Item::BRIGHTNESS || it.kind == Item::VOLUME) v = it.names[it.at];
 			else if (it.kind == Item::ACTION) v = armed == i ? "Press A again" : "";
-			else if (it.kind == Item::INFO && it.key.compare(0, 3, "hk:") == 0)	// (a hotkeys page's L2 to R3: its Buttons row's job now)
+			else if (it.kind == Item::INFO && !it.mirror.empty())	// (a hotkeys page's L2 to R3: its Buttons row's job now)
 			{
-				for (auto& b : items) if (b.key == it.key.substr(3) && b.at < (int)b.names.size()) v = b.names[b.at];
+				if (const Item* b = itemByKey(it.mirror); b && b->at < (int)b->names.size()) v = b->names[b->at];
 			}
 			else if (it.kind == Item::INFO) v = it.key == "hk" && !it.names.empty() ? it.names[0] : "";	// (Hotkeys: what it does)
 			// a page's row: Network the network it is on; Update the packages waiting on the card; the others nothing
 			else if (it.kind == Item::PAGE && (it.key == "nds_superdrastic" || it.key == "nds_bananads"))	// the DS emulator chosen
 			{
-				for (auto& r : items)
-					if (r.key == "nds_emulator" && r.at < (int)r.values.size() && "nds_" + r.values[r.at] == it.key) v = "In use";
-			}
-			else if (it.kind == Item::PAGE && !pageSummary(it.key).empty())	// a page's row: one of its rows' value
-			{
-				for (auto& r : items)
-					if (r.key == pageSummary(it.key) && r.kind == Item::CHOICE && r.at < (int)r.names.size()) v = r.names[r.at];
+				const Item* e = itemByKey("nds_emulator");
+				if (e && e->at < (int)e->values.size() && "nds_" + e->values[e->at] == it.key) v = "In use";
 			}
 			else if (it.kind == Item::PAGE && it.key.compare(0, 11, "hotkeys_ra.") == 0)	// a system's hotkeys: any of its own
 			{
 				if (const Subpage* s = subpageFrom(it.key))
-					for (auto& r : items) if (r.section == s->section && r.at > 0) v = "Own";
+					for (auto& r : items) if (r.section == s->section && r.at > 0) { v = "Own"; break; }
 			}
 			else if (it.kind == Item::PAGE && it.key == "network") v = wstat.connected ? fit(wstat.ssid, true, 19, 300) : (wifiOn() ? "Choose" : "");
 			else if (it.kind == Item::PAGE && it.key == "bt_devices") v = btRow();
@@ -2402,6 +2384,10 @@ namespace banana
 			else if (it.kind == Item::PAGE && (it.key == "scrape" || it.key == "sys_boxart")) v = scrapeShort();
 			else if (it.kind == Item::PAGE && (it.key == "homesync" || it.key == "hs_server")) v = hsStep ? "Pairing" : homeServer().empty() ? "Not paired" : fit(homeServer(), true, 19, 300);
 			else if (it.kind == Item::PAGE && it.key == "hs_sync") v = syncShort();
+			else if (const Subpage* s = it.kind == Item::PAGE ? subpageFrom(it.key) : nullptr; s && !s->summary.empty())	// one of its rows' value
+			{
+				if (const Item* r = itemByKey(s->summary); r && r->kind == Item::CHOICE && r->at < (int)r->names.size()) v = r->names[r->at];
+			}
 			// the name on the left and the value on the right, each in its own box: a long one (a translation) ends in
 			// "..." or, on the picked row, scrolls; the value gets up to 260 px, the name the rest
 			const bool arrows = !v.empty() && !(it.kind == Item::ACTION || it.kind == Item::PAGE || it.kind == Item::INFO);

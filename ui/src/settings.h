@@ -168,6 +168,7 @@ namespace banana
 		struct Item
 		{
 			std::string section, icon, label, help;
+			std::string mirror;						// a hotkeys page's L2 to R3 (INFO): the row whose value it shows
 			std::string file, key;					// where it is kept ("" for the special ones)
 			std::vector<std::string> names, values;	// shown, stored
 			int at = 0;
@@ -192,6 +193,7 @@ namespace banana
 		// a section's place: the tile's section down to its own, through the rows that open each subpage
 		// (Nintendo DS, SuperDrastic, SuperDrastic hotkeys); a tile's section alone
 		std::vector<std::string> sectionPath(const std::string& section) const;
+		const Item* itemByKey(const std::string& key) const;	// the first row with that key, or none
 		Result pressGroups(Key k);
 		void renderGroups();
 		bool downOnRow = false;

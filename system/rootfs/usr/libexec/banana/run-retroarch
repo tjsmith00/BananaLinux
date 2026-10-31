@@ -253,13 +253,11 @@ case $BANANA_SYSTEM in
 *)
     n=30
     for b in l2 r2 l3 r3; do
-        j=$(setting "ra_btn_$b.$BANANA_SYSTEM")
-        if [ -z "$j" ] || [ "$j" = all ]; then
-            case $BANANA_SYSTEM in
-            psx|n64) j=game ;;
-            *) j=$(setting ra_btn_$b); [ -n "$j" ] || { [ $b = r2 ] && j=ff || j=game; } ;;
-            esac
-        fi
+        # (PlayStation and N64 their own page's alone, not the shared ones: "all" or no line is the game's button there)
+        case $BANANA_SYSTEM in
+        psx|n64) j=$(setting "ra_btn_$b.$BANANA_SYSTEM") ;;
+        *) j=$(syssetting ra_btn_$b); [ -n "$j" ] || { [ $b = r2 ] && j=ff; } ;;
+        esac
         case $j in
         ff) c=FAST_FORWARD ;; save) c=SAVE_STATE ;; load) c=LOAD_STATE ;; menu) c=MENU_TOGGLE ;;
         pause) c=PAUSE_TOGGLE ;; screenshot) c=SCREENSHOT ;; none) c=- ;; *) c= ;;
