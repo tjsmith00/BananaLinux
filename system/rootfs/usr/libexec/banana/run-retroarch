@@ -219,7 +219,7 @@ grep -q '^joypad_autoconfig_dir = "/run/' $CFG && set_cfg joypad_autoconfig_dir 
 RBF=/run/banana/ra-buttons
 RBCFG=/run/banana/retroarch-buttons.cfg
 RBKEEP=/data/retroarch/.banana-buttons.keep
-RBKEYS='^input_player1_(l2|r2|l3|r3)_btn = '
+RBKEYS='^input_player1_(l2|r2|l3|r3|a|b|x|y)_btn = '
 if [ -f $RBKEEP ]; then
     sed -i -E "/$RBKEYS/d" $CFG && cat $RBKEEP >> $CFG && rm -f $RBKEEP && sync
     echo "run-retroarch: the button lines of a run cut short put back" >&2
@@ -246,10 +246,13 @@ case $BANANA_SYSTEM in
         fi
         n=$((n + 1))
     done
+    # Other systems > Buttons > Swap A/B and X/Y (ra_swap_ab): the RetroPad's A on the pad's B and so on (the profile's
+    # A 1, B 0, X 2, Y 3), in the game and in RetroArch's menu
+    [ "$(setting ra_swap_ab)" = on ] && printf 'input_player1_a_btn = "0"\ninput_player1_b_btn = "1"\ninput_player1_x_btn = "3"\ninput_player1_y_btn = "2"\n' >> $RBCFG
     if [ -f $RBCFG ]; then
         grep -E "$RBKEYS" $CFG > $RBKEEP.new; mv -f $RBKEEP.new $RBKEEP && sync
         RBA="|$RBCFG"
-        echo "run-retroarch: buttons: $(tr '\n' ' ' < $RBF)" >&2
+        echo "run-retroarch: buttons: $(tr '\n' ' ' 2>/dev/null < $RBF)$(grep -q '_a_btn' $RBCFG && echo 'A/B and X/Y swapped')" >&2
     fi
     ;;
 esac

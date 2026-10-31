@@ -815,7 +815,9 @@ namespace banana
 			const std::vector<std::string> values = { "swap", "ff", "blow", "save", "load", "menu", "a", "b", "x", "y", "l", "r", "start", "select", "none" };
 			const char* help = "In a DS game, in both emulators. Swap screens: as F + SELECT. Fast-forward: on, and off again. Blow on the mic: the game hears a blow while it is held, the microphone on or off. Save and load state: as F + R and F + L. F + a button and HOME keep their own (the Hotkeys page).";
 			buttonRows(DB, "nds", help, menu, "nds_btn_", "", names, values);
-			add(DB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 swaps the screens, R2 fast-forwards, L3 blows on the mic, R3 does nothing. Press A twice.",
+			add(DB, "nds", "Swap A/B and X/Y", "On: the A button presses the DS's B and B its A, X its Y and Y its X, in both emulators: for hands used to the other layout. L2, R2, L3 and R3 keep their jobs; F + a button and the emulators' menus are as printed.",
+				menu, "nds_swap_ab", { "Off", "On" }, { "off", "on" });
+			add(DB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 swaps the screens, R2 fast-forwards, L3 blows on the mic, R3 does nothing; A, B, X and Y as printed. Press A twice.",
 				"", "nds-reset-ds-buttons", { "" }, { "" }, Item::ACTION);
 		}
 		// the other systems' buttons page (Other systems > Buttons): L2, R2, L3 and R3's jobs in banana/settings.conf
@@ -826,6 +828,8 @@ namespace banana
 			const std::vector<std::string> values = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none" };
 			const char* help = "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own). Game's own: the game's button, as before. Fast-forward: on, and off again (as F + R2). Save and load state: the current slot (as F + R and F + L). Menu: RetroArch's (as F + X). With F held, the button is RetroArch's hotkey, as on the Hotkeys page.";
 			buttonRows(RB, "gamepad", help, menu, "ra_btn_", "", names, values);
+			add(RB, "gamepad", "Swap A/B and X/Y", "On: A and B swap places, and X and Y, in every RetroArch game (PlayStation and N64 too) and in RetroArch's own menu: for hands used to the other layout. F + a button stays as printed.",
+				menu, "ra_swap_ab", { "Off", "On" }, { "off", "on" });
 		}
 		const char* PW = "Power";
 		add(PW, "moon", "Sleep", "The handheld sleeps, as with a press of the power button; a game running is paused. Press the power button to wake it.", "", "sleep", { "" }, { "" }, Item::ACTION);
