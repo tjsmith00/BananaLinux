@@ -5,6 +5,7 @@
 #   nds-reset buttons     DraStic's buttons (every controls_a/controls_b line) as on a new card
 #   nds-reset drastic     all of DraStic's and SuperDrastic's settings (drastic.cfg, banana/superdrastic.conf)
 #   nds-reset bananads    BananaDS's settings (bananads.conf)
+#   nds-reset bananads-buttons  BananaDS's buttons (bananads.conf's input.* lines: Nintendo DS > Buttons)
 DEF=/usr/share/drastic/config/drastic.cfg CFG=/data/drastic/config/drastic.cfg
 case "$1" in
 buttons|drastic)
@@ -24,5 +25,10 @@ buttons|drastic)
 bananads)
     rm -f /data/bananads/bananads.conf && sync
     ;;
-*) echo "nds-reset buttons|drastic|bananads"; exit 2 ;;
+bananads-buttons)
+    C=/data/bananads/bananads.conf
+    [ -f $C ] || exit 0
+    grep -v '^[[:space:]]*input\.' $C > $C.new; sync $C.new 2>/dev/null; mv -f $C.new $C && sync
+    ;;
+*) echo "nds-reset buttons|drastic|bananads|bananads-buttons"; exit 2 ;;
 esac
