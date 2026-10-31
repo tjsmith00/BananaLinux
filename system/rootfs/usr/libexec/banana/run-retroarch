@@ -17,7 +17,7 @@ syssetting() {
     { [ -z "$v" ] || [ "$v" = all ]; } && v=$(setting "$1")
     printf '%s' "$v"
 }
-# Settings > Other systems > the system's core (settings.conf's core.<system>, BANANA_SYSTEM from banana-ui): another
+# Settings > Other systems > Emulators > the system's core (settings.conf's core.<system>, BANANA_SYSTEM from banana-ui): another
 # installed core instead of systems.conf's, e.g. mGBA for the Game Boy Advance (RetroAchievements), or one downloaded
 # with RetroArch's Core Downloader; one not installed is ignored
 if [ -n "$BANANA_SYSTEM" ]; then
@@ -134,7 +134,7 @@ if [ -z "$font" ] || [ "$font" = "$(cat $F 2>/dev/null)" ]; then
         set_cfg video_font_path ""; set_cfg video_font_size 32; rm -f $F
     fi
 fi
-# Settings > Other systems > Shader: RetroArch's global preset, a reference to one of the image's presets. Only a
+# Settings > Other systems > Picture & sound > Shader: RetroArch's global preset, a reference to one of the image's presets. Only a
 # global.glslp Banana wrote (its first line) is changed or removed: one saved from RetroArch's own menu stays.
 GP=/data/retroarch/config/global.glslp
 look=$(setting ra_shader)
@@ -148,14 +148,14 @@ ours() { head -n 1 $GP 2>/dev/null | grep -q '^# Banana'; }
 if [ -n "$SP" ]; then
     if [ ! -f $GP ] || ours; then
         mkdir -p ${GP%/*}
-        printf '# Banana: Settings > Other systems > Shader (%s)\n#reference "/usr/share/libretro/shaders/glsl/%s"\n' "$look" "$SP" > $GP
+        printf '# Banana: Settings > Other systems > Picture & sound > Shader (%s)\n#reference "/usr/share/libretro/shaders/glsl/%s"\n' "$look" "$SP" > $GP
         set_cfg video_shader_enable true
     fi
 elif ours; then
     rm -f $GP
     set_cfg video_shader_enable false
 fi
-# Settings > Other systems > Audio latency and VSync: Banana's values written into RetroArch's config at every start
+# Settings > Other systems > Picture & sound > Audio latency and VSync: Banana's values written into RetroArch's config at every start
 # (so these two follow Settings: a change made to them in RetroArch's own menu lasts until the game quits)
 lat=$(setting ra_audio_latency)
 case $lat in 32|64|128) set_cfg audio_latency $lat ;; esac
@@ -277,7 +277,7 @@ case $BANANA_SYSTEM in
     fi
     ;;
 esac
-# Settings > Other systems > Screen border (ra_border, default off): the black area around the picture filled with a
+# Settings > Other systems > Picture & sound > Screen border (ra_border, default off): the black area around the picture filled with a
 # border in the menu's look (tools/make-borders.py made them: /usr/share/banana/borders/<panel mode>/<theme>/<system>),
 # as a RetroArch overlay with a clear hole, and the picture put exactly in that hole as RetroArch's custom viewport
 # (borders.conf). The theme's own border when the image has one for it (dark, light, the example themes as the image

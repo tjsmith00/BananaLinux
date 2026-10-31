@@ -588,41 +588,58 @@ namespace banana
 			add(SD, "nds", "Reset DraStic", "All of DraStic's and SuperDrastic's settings back to Banana's, the buttons too. Saves, save states, cheats and the DS's name and birthday stay. Press A twice.",
 				"", "nds-reset-drastic", { "" }, { "" }, Item::ACTION);
 		}
+		// Other systems (RetroArch): what every game shares, then pages: Second screen (the game panel and its companions),
+		// Picture & sound, Emulators (each system's core, when it has a choice), Buttons and RetroArch hotkeys
 		const char* O = "Other systems";
 		add(O, "gamepad", "Screen", "Which panel the systems other than the DS use (RetroArch). The other one shows the game panel (Second screen), or is switched off.",
 			"/data/retroarch/retroarch.cfg", "video_monitor_index", { "Top", "Bottom" }, { "2", "1" });
-		add(O, "gamepad", "Second screen", "While a game plays on one screen, the other shows its RetroAchievements and tiles to save, load, open RetroArch's menu, fast forward and quit (by touch when they are on the bottom screen). Off: the other screen stays dark.",
-			menu, "retroarch_panel", { "Game panel", "Off" }, { "panel", "off" });
-		add(O, "picture", "Game panel when idle", "With a game on the top screen, what the game panel on the bottom one does when nothing has touched it or pressed a button for a while: stays on, dims, or turns off. A touch or any button lights it again.",
-			menu, "bottom_idle_mode", { "Dims", "Turns off", "Stays on" }, { "dim", "off", "on" });
-		add(O, "picture", "Game panel idle time", "How long the game panel waits, with no touch and no button, before it dims or turns off (Game panel when idle).",
-			menu, "bottom_idle_seconds", { "After 10 s", "After 30 s", "After 1 minute" }, { "10", "30", "60" });
-		add(O, "gamepad", "Pokémon companion", "Pokémon Ruby, Sapphire, Emerald, FireRed and LeafGreen (the English releases) on the second screen: the party with levels, HP and moves, and in a battle the foe, its types and how each move does against it. Read from the game as it plays; other games keep the panel as it is. Needs Second screen on. Inspired by PokeDaisy by Lidor Itzhari.",
-			menu, "pokemon_companion", { "Off", "On" }, { "off", "on" });
-		add(O, "gamepad", "Game companion", "Other Game Boy Advance games on the second screen: seven pages about the game as it plays (status, a closer look, the fight, the map, the bag, collectibles, progress), read from the game where it can be and notes where not. Pokémon games keep the Pokémon companion. Needs Second screen on. Inspired by PokeDaisy by Lidor Itzhari.",
-			menu, "game_companion", { "Off", "On" }, { "off", "on" });
 		add(O, "gamepad", "RetroAchievements", "Softcore: achievements unlock with save states, rewind and cheats still there. Hardcore: those are locked for the game, and the unlocks count as hardcore on retroachievements.org. RetroArch's own menu changes the same setting.",
 			"/data/retroarch/retroarch.cfg", "cheevos_hardcore_mode_enable", { "Softcore", "Hardcore" }, { "false", "true" });
 		add(O, "gamepad", "Quick resume", "On: quitting keeps where you are, and the game goes on from there next time (RetroArch's automatic save state; not in Hardcore). Off: a game starts from its title.", "/data/retroarch/retroarch.cfg", "savestate_auto_save", { "Off", "On" }, { "false", "true" });
-		add(O, "picture", "Shader", "A look for the systems RetroArch runs: a handheld's LCD grid, a CRT's scanlines, or sharp pixels at any size. RetroArch's own Shaders menu still picks any of libretro's presets.",
-			menu, "ra_shader", { "Off", "LCD", "CRT", "Sharp pixels" }, { "off", "lcd", "crt", "sharp" });
-		add(O, "picture", "Screen border", "On: the black around a game's picture filled with a quiet border in the menu's colours (the theme's), the picture at a sharp whole-number size where that fits. The DS, the N64 and a picture that already fills the screen have none.",
-			menu, "ra_border", { "Off", "On" }, { "off", "on" });
-		add(O, "music", "Audio latency", "RetroArch's audio buffer. Low is the quickest to react and can crackle on a busy game; Safe has the most margin (and the most delay).",
-			menu, "ra_audio_latency", { "Low (32 ms)", "Default (64 ms)", "Safe (128 ms)" }, { "32", "64", "128" });
-		add(O, "picture", "VSync", "On waits for the panel's refresh before drawing the next frame, so nothing tears. Off lets a core run as fast as it can; the panel can show a half-drawn frame.",
-			menu, "ra_vsync", { "On", "Off" }, { "on", "off" });
-		// each system's emulator, among the cores installed for it (a row once there are two to choose from)
-		coreSig = coreSignature();
-		for (const auto& sys : RA_SYSTEMS)
+		add(O, "gamepad", "Second screen", "The other screen while a game plays: the game panel (achievements and tiles to save, load, open RetroArch's menu, fast forward and quit), when it dims or turns off, and the Pokémon and game companions.", "", "ra_second", {}, {}, Item::PAGE);
+		add(O, "picture", "Picture & sound", "How RetroArch's games look and sound: a shader, a screen border, VSync and the audio latency.", "", "ra_picture", {}, {}, Item::PAGE);
 		{
-			std::vector<std::string> names, values;
-			coreChoices(sys, names, values);
-			if (names.size() < 2) continue;
-			const char* help = std::string(sys.id) == "gba"
-				? "The emulator for GBA games. gpSP: the fastest. mGBA: the most accurate, and the one RetroAchievements accepts for hardcore. Cores downloaded with RetroArch's Core Downloader (its Online Updater) are listed here too."
-				: "The emulator (RetroArch core) for this system's games: the first is BananaOS's own. Cores downloaded with RetroArch's Core Downloader (its Online Updater) are listed here too.";
-			add(O, "gamepad", sys.label, help, menu, (std::string("core.") + sys.id).c_str(), names, values);
+			const char* SS = "Second screen";
+			add(SS, "gamepad", "Second screen", "While a game plays on one screen, the other shows its RetroAchievements and tiles to save, load, open RetroArch's menu, fast forward and quit (by touch when they are on the bottom screen). Off: the other screen stays dark.",
+				menu, "retroarch_panel", { "Game panel", "Off" }, { "panel", "off" });
+			add(SS, "picture", "Game panel when idle", "With a game on the top screen, what the game panel on the bottom one does when nothing has touched it or pressed a button for a while: stays on, dims, or turns off. A touch or any button lights it again.",
+				menu, "bottom_idle_mode", { "Dims", "Turns off", "Stays on" }, { "dim", "off", "on" });
+			add(SS, "picture", "Game panel idle time", "How long the game panel waits, with no touch and no button, before it dims or turns off (Game panel when idle).",
+				menu, "bottom_idle_seconds", { "After 10 s", "After 30 s", "After 1 minute" }, { "10", "30", "60" });
+			add(SS, "gamepad", "Pokémon companion", "Pokémon Ruby, Sapphire, Emerald, FireRed and LeafGreen (the English releases) on the second screen: the party with levels, HP and moves, and in a battle the foe, its types and how each move does against it. Read from the game as it plays; other games keep the panel as it is. Needs Second screen on. Inspired by PokeDaisy by Lidor Itzhari.",
+				menu, "pokemon_companion", { "Off", "On" }, { "off", "on" });
+			add(SS, "gamepad", "Game companion", "Other Game Boy Advance games on the second screen: seven pages about the game as it plays (status, a closer look, the fight, the map, the bag, collectibles, progress), read from the game where it can be and notes where not. Pokémon games keep the Pokémon companion. Needs Second screen on. Inspired by PokeDaisy by Lidor Itzhari.",
+				menu, "game_companion", { "Off", "On" }, { "off", "on" });
+		}
+		{
+			const char* PS = "Picture & sound";
+			add(PS, "picture", "Shader", "A look for the systems RetroArch runs: a handheld's LCD grid, a CRT's scanlines, or sharp pixels at any size. RetroArch's own Shaders menu still picks any of libretro's presets.",
+				menu, "ra_shader", { "Off", "LCD", "CRT", "Sharp pixels" }, { "off", "lcd", "crt", "sharp" });
+			add(PS, "picture", "Screen border", "On: the black around a game's picture filled with a quiet border in the menu's colours (the theme's), the picture at a sharp whole-number size where that fits. The DS, the N64 and a picture that already fills the screen have none.",
+				menu, "ra_border", { "Off", "On" }, { "off", "on" });
+			add(PS, "music", "Audio latency", "RetroArch's audio buffer. Low is the quickest to react and can crackle on a busy game; Safe has the most margin (and the most delay).",
+				menu, "ra_audio_latency", { "Low (32 ms)", "Default (64 ms)", "Safe (128 ms)" }, { "32", "64", "128" });
+			add(PS, "picture", "VSync", "On waits for the panel's refresh before drawing the next frame, so nothing tears. Off lets a core run as fast as it can; the panel can show a half-drawn frame.",
+				menu, "ra_vsync", { "On", "Off" }, { "on", "off" });
+		}
+		// the Emulators page (Other systems > Emulators): a row once some system has two cores to choose from
+		{
+			const char* EM = "Emulators";
+			const size_t before = items.size();
+			// each system's emulator, among the cores installed for it (a row once there are two to choose from)
+			coreSig = coreSignature();
+			for (const auto& sys : RA_SYSTEMS)
+			{
+				std::vector<std::string> names, values;
+				coreChoices(sys, names, values);
+				if (names.size() < 2) continue;
+				const char* help = std::string(sys.id) == "gba"
+					? "The emulator for GBA games. gpSP: the fastest. mGBA: the most accurate, and the one RetroAchievements accepts for hardcore. Cores downloaded with RetroArch's Core Downloader (its Online Updater) are listed here too."
+					: "The emulator (RetroArch core) for this system's games: the first is BananaOS's own. Cores downloaded with RetroArch's Core Downloader (its Online Updater) are listed here too.";
+				add(EM, "gamepad", sys.label, help, menu, (std::string("core.") + sys.id).c_str(), names, values);
+			}
+			if (items.size() > before)
+				add(O, "gamepad", "Emulators", "Each system's emulator (RetroArch core), for the systems that have more than one: the first is BananaOS's own. Cores downloaded with RetroArch's Core Downloader (its Online Updater) are listed too.", "", "ra_cores", {}, {}, Item::PAGE);
 		}
 		// L2, R2, L3 and R3 alone in RetroArch's games (the page below; run-retroarch, bananad)
 		add(O, "gamepad", "Buttons", "What L2, R2, L3 and R3 do alone in a game: the game's own button, or fast-forward, save or load a state, RetroArch's menu, pause, a screenshot, nothing. Not PlayStation and N64, whose games use them. F + R saves and F + L loads a state, as on the DS.", "", "ra_buttons", {}, {}, Item::PAGE);
@@ -1140,6 +1157,9 @@ namespace banana
 				{ "hotkeys_sd", "SuperDrastic hotkeys" },
 				{ "hotkeys_bds", "BananaDS hotkeys" },
 				{ "hotkeys_ra", "RetroArch hotkeys" },
+				{ "ra_second", "Second screen" },
+				{ "ra_picture", "Picture & sound" },
+				{ "ra_cores", "Emulators" },
 				{ "ds_buttons", "DS buttons" },
 				{ "ra_buttons", "Other systems buttons" },
 				{ "homesync", "Home server" },
