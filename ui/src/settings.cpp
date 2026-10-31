@@ -522,6 +522,8 @@ namespace banana
 		// the DS's own language (its firmware's), in both emulators at once: a game that has several picks it (#22)
 		add(N, "nds", "DS language", "The language the DS itself is set to: a game that has several starts in it. Both emulators.",
 			"", "ds_language", { "English", "Japanese", "French", "German", "Italian", "Spanish" }, { "1", "0", "2", "3", "4", "5" });
+		// L2, R2, L3 and R3's jobs, the same in both emulators (the DS buttons page below; nds-buttons)
+		add(N, "nds", "Buttons", "What L2, R2, L3 and R3 do in a DS game, the same in both emulators: swap the screens, fast-forward, blow on the mic, save or load a state, the menu, one of the DS's buttons, or nothing. F + R saves and F + L loads a state in both.", "", "ds_buttons", {}, {}, Item::PAGE);
 		// the DS's own name (its firmware's user name), in both emulators at once: what a game calls you (#30)
 		add(N, "nds", "DS name", "The name the DS itself is set to, as on a real one: Mario Kart's records, Pictochat, a game's save. 10 characters at most. Both emulators; empty: Dr DraStic in SuperDrastic, Banana in BananaDS.",
 			"", "ds_name", {}, {}, Item::PAGE);
@@ -553,7 +555,6 @@ namespace banana
 				bds, "mic.source", { "On", "Off" }, { "device", "none" });
 			add(N, "nds", "Mic sensitivity", "How far above the room's noise a word or a blow must be to reach the game. Gate off lets the game hear everything the microphone picks up, its own sound from the speaker included.",
 				bds, "mic.threshold", { "Medium", "High", "Low", "Gate off" }, { "0.05", "0.02", "0.15", "0" });
-			add(N, "nds", "Buttons", "What L2, R2, L3 and R3 do in a DS game in BananaDS: one of the DS's buttons, or a job (the menu, swap the screens, save or load a state, fast-forward, blow on the mic). F + a button and HOME always do their own.", "", "bds_buttons", {}, {}, Item::PAGE);
 			add(N, "nds", "Reset BananaDS", "BananaDS's settings back to Banana's. Saves, save states and each game's clock stay. Press A twice.",
 				"", "nds-reset-bananads", { "" }, { "" }, Item::ACTION);
 		}
@@ -573,7 +574,7 @@ namespace banana
 			// experimental: SuperDrastic's DSFLIP_LOWLAT (run-drastic): no queue, each frame at the next vblank, DraStic held
 			add(N, "nds", "Low latency (experimental)", "Experimental. On: no frame queue: each frame goes to the panels at the next refresh it can make, so a press shows about a refresh and a half (20-25 ms) sooner, the sound a little sooner too. Uneven frames (2x, heavy scenes) can show as small stutters the queue would hide, more on the RG DS Plus.",
 				sd, "DSFLIP_LOWLAT", { "Off", "On" }, { "0", "1" });
-			add(N, "nds", "Reset buttons", "DraStic's buttons back to Banana's, for a button setup gone wrong in DraStic's menu: the pad as printed, F or L3 the menu, R2 save, L2 load, R3 fast forward. (HOME always opens the menu.) Press A twice.",
+			add(N, "nds", "Reset buttons", "DraStic's buttons back to Banana's, for a button setup gone wrong in DraStic's menu: the pad as printed, F the menu, and L2, R2, L3 and R3 as Nintendo DS > Buttons has them. (HOME always opens the menu.) Press A twice.",
 				"", "nds-reset-buttons", { "" }, { "" }, Item::ACTION);
 			add(N, "nds", "Reset DraStic", "All of DraStic's and SuperDrastic's settings back to Banana's, the buttons too. Saves, save states, cheats and the DS's name and birthday stay. Press A twice.",
 				"", "nds-reset-drastic", { "" }, { "" }, Item::ACTION);
@@ -688,17 +689,15 @@ namespace banana
 				{ "Menu: SELECT", "Search", "In the menu: search every system's games by name." },
 				{ "Menu: X", "Resume, options", "On the home row: the system's last game. On a game: its page (name, box art, emulator, delete)." },
 				{ "Menu: L / R", "A page", "In a game list or a settings list: five at a time. Up and down too." },
-				{ "SuperDrastic: F", "Its menu", "DS games in SuperDrastic: save, load, quick settings (volume, brightness), quit. L3 opens it too." },
+				{ "DS: F + R", "Save state", "DS games, both emulators: the emulator's quick save state (BananaDS: slot 1)." },
+				{ "DS: F + L", "Load state", "DS games, both emulators: loads it back." },
+				{ "DS: L2", "Swap the screens", "DS games, both emulators, as F + SELECT. Settings > Nintendo DS > Buttons gives L2, R2, L3 and R3 other jobs." },
+				{ "DS: R2", "Fast-forward", "DS games, both emulators: on, and off again." },
+				{ "DS: L3", "Blow on the mic", "DS games, both emulators: held, the game hears a blow (candles, pinwheels, Nintendogs), the microphone on or off." },
+				{ "SuperDrastic: F", "Its menu", "DS games in SuperDrastic: save, load, quick settings (volume, brightness), quit." },
 				{ "SuperDrastic: F + START", "Quit", "DS games in SuperDrastic: back to the menu, the spot saved to resume from when Quick resume is on." },
-				{ "SuperDrastic: R2 / L2", "Save / load state", "DS games in SuperDrastic: DraStic's quick save state, and loading it." },
 				{ "SuperDrastic: F + SELECT", "Swap the screens", "DS games in SuperDrastic: the DS's top screen on the bottom panel and its bottom screen on the top one (touch follows it: the RG DS's top touchscreen; on the RG DS Plus no touch while swapped), and back. Kept for each game." },
-				{ "SuperDrastic: R3", "Fast-forward", "DS games in SuperDrastic: held, the game runs as fast as it can." },
 				{ "BananaDS: F / HOME", "Its menu", "DS games in BananaDS: save, load, quick settings, achievements, quit." },
-				{ "BananaDS: R2", "Fast-forward", "DS games in BananaDS: held, the game runs as fast as it can. Settings > Nintendo DS > Buttons moves it." },
-				{ "BananaDS: L3", "Blow on the mic", "DS games in BananaDS: held, the game hears a blow (candles, pinwheels, Nintendogs), the microphone on or off. Settings > Nintendo DS > Buttons moves it." },
-				{ "BananaDS: R3", "Swap the screens", "DS games in BananaDS (the RG DS: the RG DS Plus has no R3), as F + SELECT. Settings > Nintendo DS > Buttons gives it another job." },
-				{ "BananaDS: F + R", "Save to slot 1", "DS games in BananaDS." },
-				{ "BananaDS: F + L", "Load slot 1", "DS games in BananaDS." },
 				{ "BananaDS: F + SELECT", "Swap the screens", "DS games in BananaDS: the DS's top screen on the bottom panel and its bottom screen on the top one (touch follows it: the RG DS's top touchscreen; on the RG DS Plus no touch while swapped), and back. Kept for each game." },
 				{ "BananaDS: F + START", "Quit", "DS games in BananaDS: your spot saved, then back to the menu." },
 				{ "RetroArch: F + X", "Its menu", "The other systems (RetroArch). Settings > Other systems > RetroArch hotkeys Off leaves this and F + START only." },
@@ -711,31 +710,22 @@ namespace banana
 			for (auto& r : rows) add(HK, "gear", r.keys, r.help, "", "hk", { r.what }, { "" }, Item::INFO);
 		}
 		// Power: Y on the groups (no tile of its own: the grid is the six above), straight from the home screen's START
-		// the BananaDS buttons page (Nintendo DS > Buttons, BananaDS only): L2, R2, L3 and R3's input.<button> in
-		// bananads.conf (BananaDS's docs/SETTINGS.md, buildroot/patches/bananads/0010): one of the DS's buttons or a job.
-		// Each row's first choice is that button's default; F + a button and HOME are BananaDS's own, always
-		if (emu == "bananads")
+		// the DS buttons page (Nintendo DS > Buttons): L2, R2, L3 and R3's jobs in banana/settings.conf (nds_btn_*, defaults
+		// in settings_defaults.cpp), given to both emulators as they start (nds-buttons: BananaDS's input.<button>, DraStic's
+		// controls and SuperDrastic's DSFLIP_SWAP_BUTTONS). The other buttons are the DS's own, as printed
 		{
-			const char* BB = "BananaDS buttons";
-			const std::vector<std::string> names = { "DS A", "DS B", "DS X", "DS Y", "DS L", "DS R", "DS START", "DS SELECT",
-				"DS Up", "DS Down", "DS Left", "DS Right", "Swap screens", "Save state", "Load state", "Fast-forward (held)",
-				"Fast-forward on/off", "Screenshot", "Blow on the mic", "Menu", "Nothing" };
-			const std::vector<std::string> values = { "a", "b", "x", "y", "l", "r", "start", "select", "up", "down", "left", "right",
-				"swap", "save", "load", "ffhold", "ff", "screenshot", "blow", "menu", "none" };
-			// (only the buttons the DS hasn't: the others are the DS's own, as printed; BananaDS takes input.<any button>)
-			struct { const char* label; const char* key; const char* def; } btn[] = {
-				{ "L2", "input.l2", "none" }, { "R2", "input.r2", "ffhold" }, { "L3", "input.l3", "blow" }, { "R3", "input.r3", "swap" } };	// (R3 swaps: the RG DS Plus has none, and F + SELECT does it too)
-			for (auto& b : btn)
-			{
-				// (the default first: a card with no line for it shows it)
-				std::vector<std::string> n = names, v = values;
-				for (size_t i = 0; i < v.size(); i++)
-					if (v[i] == b.def) { std::rotate(n.begin(), n.begin() + i, n.begin() + i + 1); std::rotate(v.begin(), v.begin() + i, v.begin() + i + 1); }
-				add(BB, "nds", b.label, "In a DS game in BananaDS: a DS button, or a job. Save and load use slot 1. Blow on the mic: the game hears a blow while it is held, the microphone on or off. F + this button and HOME keep their own (the Hotkeys page).",
-					"/data/bananads/bananads.conf", b.key, n, v);
-			}
-			add(BB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 nothing, R2 fast-forward while held, L3 blows on the mic, R3 swaps the screens. Press A twice.",
-				"", "nds-reset-bananads-buttons", { "" }, { "" }, Item::ACTION);
+			const char* DB = "DS buttons";
+			const std::vector<std::string> names = { "Swap screens", "Fast-forward", "Blow on the mic", "Save state", "Load state", "Menu",
+				"DS A", "DS B", "DS X", "DS Y", "DS L", "DS R", "DS START", "DS SELECT", "Nothing" };
+			const std::vector<std::string> values = { "swap", "ff", "blow", "save", "load", "menu", "a", "b", "x", "y", "l", "r", "start", "select", "none" };
+			const char* help = "In a DS game, in both emulators. Swap screens: as F + SELECT. Fast-forward: on, and off again. Blow on the mic: the game hears a blow while it is held, the microphone on or off. Save and load state: as F + R and F + L. F + a button and HOME keep their own (the Hotkeys page).";
+			add(DB, "nds", "L2", help, menu, "nds_btn_l2", names, values);
+			add(DB, "nds", "R2", help, menu, "nds_btn_r2", names, values);
+			add(DB, "nds", "L3", help, menu, "nds_btn_l3", names, values);
+			const std::string helpR3 = std::string(help) + " (The RG DS Plus has no R3.)";
+			add(DB, "nds", "R3", helpR3.c_str(), menu, "nds_btn_r3", names, values);
+			add(DB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 swaps the screens, R2 fast-forwards, L3 blows on the mic, R3 does nothing. Press A twice.",
+				"", "nds-reset-ds-buttons", { "" }, { "" }, Item::ACTION);
 		}
 		const char* PW = "Power";
 		add(PW, "moon", "Sleep", "The handheld sleeps, as with a press of the power button; a game running is paused. Press the power button to wake it.", "", "sleep", { "" }, { "" }, Item::ACTION);
@@ -1068,7 +1058,7 @@ namespace banana
 			if (it.key == "bt_devices") { openBluetooth(); return MOVED; }
 			if (it.key == "shelves") { openSection("Shown systems"); return MOVED; }
 			if (it.key == "hotkeys") { openSection("Hotkeys"); return MOVED; }
-			if (it.key == "bds_buttons") { message.clear(); openSection("BananaDS buttons"); return MOVED; }
+			if (it.key == "ds_buttons") { message.clear(); openSection("DS buttons"); return MOVED; }
 			if (it.key == "homesync") { message.clear(); openSection("Home server"); return MOVED; }
 			if (it.key == "hs_systems") { openSection("Home server systems"); return MOVED; }
 			if (it.key == "hs_server") { startPairing(); return MOVED; }
@@ -1114,7 +1104,7 @@ namespace banana
 				build();
 				for (auto& x : items) load(x);
 				for (size_t i = 0; i < items.size(); i++) if (items[i].key == key) sel = (int)i;
-				message = rc == 0 ? (key == "nds-reset-buttons" ? "DraStic's buttons are Banana's again." : key == "nds-reset-bananads-buttons" ? "BananaDS's buttons are Banana's again." : "Back to Banana's settings.")
+				message = rc == 0 ? (key == "nds-reset-buttons" ? "DraStic's buttons are Banana's again." : key == "nds-reset-ds-buttons" ? "L2, R2, L3 and R3 are Banana's again." : "Back to Banana's settings.")
 					: out.empty() ? "Couldn't reset: the card may be read-only." : out;
 				return CHANGED;
 			}
@@ -1315,7 +1305,7 @@ namespace banana
 		case Key::RIGHT: return items[sel].kind == Item::ACTION || items[sel].key == "scrape" || items[sel].key == "hs_sync" ? NONE : change(1);
 		case Key::A: if (items[sel].key == "theme") { openThemes(); return MOVED; } return change(1);	// (the gallery)
 		case Key::B:
-			if (groups[g] == "Shown systems" || groups[g] == "Hotkeys" || groups[g] == "BananaDS buttons" || groups[g] == "Home server" || groups[g] == "Home server systems") { std::string from = groups[g] == "Hotkeys" ? "hotkeys" : groups[g] == "BananaDS buttons" ? "bds_buttons" : groups[g] == "Home server" ? "homesync" : groups[g] == "Home server systems" ? "hs_systems" : "shelves"; message.clear(); for (size_t i = 0; i < items.size(); i++) if (items[i].key == from) sel = (int)i; top = std::max(groupStart(groupOf(sel)), sel - ROWS + 1); armed = -1; return MOVED; }
+			if (groups[g] == "Shown systems" || groups[g] == "Hotkeys" || groups[g] == "DS buttons" || groups[g] == "Home server" || groups[g] == "Home server systems") { std::string from = groups[g] == "Hotkeys" ? "hotkeys" : groups[g] == "DS buttons" ? "ds_buttons" : groups[g] == "Home server" ? "homesync" : groups[g] == "Home server systems" ? "hs_systems" : "shelves"; message.clear(); for (size_t i = 0; i < items.size(); i++) if (items[i].key == from) sel = (int)i; top = std::max(groupStart(groupOf(sel)), sel - ROWS + 1); armed = -1; return MOVED; }
 			inGroups = true; gsel = g < gridCount() ? g : 0; armed = -1; return MOVED;	// back to the groups
 		case Key::START: mOpen = false; return CLOSED;
 		default: return NONE;
@@ -1323,7 +1313,7 @@ namespace banana
 	}
 
 	// the sections with no tile on the groups' grid (after the others): Power (Y there), Shown systems (a row's page)
-	static bool tileless(const std::string& section) { return section == "Power" || section == "Shown systems" || section == "Hotkeys" || section == "BananaDS buttons" || section == "Home server" || section == "Home server systems"; }
+	static bool tileless(const std::string& section) { return section == "Power" || section == "Shown systems" || section == "Hotkeys" || section == "DS buttons" || section == "Home server" || section == "Home server systems"; }
 	int Settings::gridCount() const
 	{
 		int n = 0;

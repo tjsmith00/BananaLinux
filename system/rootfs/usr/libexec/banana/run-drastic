@@ -29,6 +29,9 @@ if grep -q '^controls_a\[CONTROL_INDEX_HINGE\] = 65535' config/drastic.cfg 2>/de
    grep -q '^controls_b\[CONTROL_INDEX_HINGE\] = 65535' config/drastic.cfg; then
     sed -i 's/^controls_a\[CONTROL_INDEX_HINGE\] = 65535/controls_a[CONTROL_INDEX_HINGE] = 328/' config/drastic.cfg
 fi
+# Settings > Nintendo DS > Buttons (nds-buttons): L2, R2, L3 and R3's jobs into DraStic's controls, the same as
+# BananaDS's; the ones that swap the screens are SuperDrastic's own (DSFLIP_SWAP_BUTTONS). F + R / F + L save and load
+export DSFLIP_SWAP_BUTTONS="$(/usr/libexec/banana/nds-buttons drastic config/drastic.cfg)"
 # DraStic writes beside $HOME (SDL's cache); / is read-only
 export HOME=$D XDG_RUNTIME_DIR=/run
 # banana-ui has let go of the panels completely (it closes its display while a game runs)
@@ -44,7 +47,7 @@ if [ -f $A ]; then
     u=$(sed -n '/^ra_user=/{s///p;q}' $A); w=$(sed -n '/^ra_password=/{s///p;q}' $A)
     [ -n "$u" ] && export DSFLIP_RA_USER="$u" DSFLIP_RA_PASSWORD="$w"
 fi
-# the in-game menu (L3) in BananaOS's colours and fonts
+# the in-game menu (F) in BananaOS's colours and fonts
 export DSFLIP_MENU_THEME=banana
 # a shader of your own (banana/shaders/<name>.frag, listed in Settings as "<name> (card)"): SuperDrastic looks there
 s=$(sed -n '/^ *DSFLIP_SHADER *= */{s///;h};${x;p}' /data/banana/superdrastic.conf 2>/dev/null)

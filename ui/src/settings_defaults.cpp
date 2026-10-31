@@ -40,6 +40,8 @@ namespace banana
 		const char* const LATENCY[] = { "32", "64", "128", nullptr };
 		const char* const LOGIN[] = { "password", "guest", nullptr };
 		const char* const BT_AUDIO[] = { "latency", "quality", nullptr };
+		// Nintendo DS > Buttons: L2, R2, L3 and R3's job in both DS emulators (nds-buttons)
+		const char* const NDS_BTN[] = { "a", "b", "x", "y", "l", "r", "start", "select", "swap", "save", "load", "ff", "blow", "menu", "none", nullptr };
 
 		// (language is left out on purpose: a reset keeps the menu's language, and the codes are lang/'s files)
 		// The values /etc/banana/settings.conf documents, and the ones a card is completed with when that file is
@@ -71,6 +73,10 @@ namespace banana
 			{ "ra_vsync", "on", ENUM, ON_OFF, 0, 0, true },
 			{ "ra_hotkeys", "on", ENUM, ON_OFF, 0, 0, true },
 			{ "nds_emulator", "superdrastic", ENUM, NDS, 0, 0, true },
+			{ "nds_btn_l2", "swap", ENUM, NDS_BTN, 0, 0, true },
+			{ "nds_btn_r2", "ff", ENUM, NDS_BTN, 0, 0, true },
+			{ "nds_btn_l3", "blow", ENUM, NDS_BTN, 0, 0, true },
+			{ "nds_btn_r3", "none", ENUM, NDS_BTN, 0, 0, true },
 			{ "share", "off", ENUM, ON_OFF, 0, 0 },
 			{ "share_login", "password", ENUM, LOGIN, 0, 0 },
 			{ "ssh", "off", ENUM, ON_OFF, 0, 0 },

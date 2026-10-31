@@ -1,19 +1,19 @@
-From 3a047b94838cdb9c6ca2d6301710cb2c9f0ea86c Mon Sep 17 00:00:00 2001
+From 5aa0a995b13d4304370b9a323a00c52de5e01a76 Mon Sep 17 00:00:00 2001
 From: Toby Smith <toby.smith@seluna.co.uk>
 Date: Sat, 31 Oct 2026 14:01:56 +0000
-Subject: [PATCH] input.<button>: each of the pad's buttons remappable, L3
- blows, R3 swaps the screens
+Subject: [PATCH] input.<button>: each of the pad's buttons remappable; L2
+ swaps, R2 fast-forwards, L3 blows
 
 L3 was a third way into the in-game menu, beside F and HOME (#55), and no
 button could be moved (#52). input.<button> (a b x y l r start select up
 down left right l2 r2 l3 r3) now says what each does in a game: one of the
 DS's buttons, or a job (menu, swap, save, load, ff, ffhold, screenshot,
 blow, none). blow is the menu's Blow for as long as the button is held,
-as SuperDrastic's blow key. The defaults are the pad as printed, R2
-fast-forward while held, L3 a blow (it was the menu) and R3 the screens
-swapped (the RG DS Plus has no R3, and F + SELECT swaps them too). F + a
-button, HOME and the menu's own keys never change, so no setting can lock
-the menu away. The menu's Hotkeys page lists the buttons with a job.
+as SuperDrastic's blow key. The defaults are the pad as printed, L2 the
+screens swapped, R2 fast-forward on and off, L3 a blow (it was the menu)
+and R3 nothing (the RG DS Plus has none), as BananaOS sets SuperDrastic's.
+F + a button, HOME and the menu's own keys never change, so no setting can
+lock the menu away. The menu's Hotkeys page lists the buttons with a job.
 ---
  bananads/docs/SETTINGS.md     |   3 +-
  bananads/src/frontend_kms.cpp | 149 ++++++++++++++++++++++++++--------
@@ -21,7 +21,7 @@ the menu away. The menu's Hotkeys page lists the buttons with a job.
  3 files changed, 117 insertions(+), 39 deletions(-)
 
 diff --git a/bananads/docs/SETTINGS.md b/bananads/docs/SETTINGS.md
-index c3bde46..6857c1e 100644
+index c3bde46..0cf50e2 100644
 --- a/bananads/docs/SETTINGS.md
 +++ b/bananads/docs/SETTINGS.md
 @@ -142,7 +142,8 @@ key can also come from the environment as `BANANADS_<KEY>` (dots become undersco
@@ -30,12 +30,12 @@ index c3bde46..6857c1e 100644
  | `kms.touch` | `$BANANADS_TOUCH`, else `fe5e0000.i2c` | the bottom panel's touchscreen: the input device whose sysfs path contains this |
 -| `kms.menu` | `on` | the in-game menu (src/menu.c: SuperDrastic's, in BananaOS's colours): L3 pauses the game and opens it on both panels. Resume, Save and Load (8 slots with pictures; a load can be undone), Quick settings (volume, brightness, the microphone's meter and a blow), Restart game, Quit game. `kms.menu_test=<n>` opens it 3 s in, on the main page (1), Save (2), Load (3), Quick settings (4) or the quit question (5), for tests |
 +| `kms.menu` | `on` | the in-game menu (src/menu.c: SuperDrastic's, in BananaOS's colours): F or HOME (and a button set to `menu`, `input.<button>`) pauses the game and opens it on both panels. Resume, Save and Load (8 slots with pictures; a load can be undone), Quick settings (volume, brightness, the microphone's meter and a blow), Restart game, Quit game. `kms.menu_test=<n>` opens it 3 s in, on the main page (1), Save (2), Load (3), Quick settings (4) or the quit question (5), for tests |
-+| `input.<button>` | as the pad is printed; `input.r2` `ffhold`, `input.l3` `blow`, `input.r3` `swap` (the RG DS Plus has no R3), `input.l2` `none` | what a button of the pad does in a game. `<button>`: `a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right` `l2` `r2` `l3` `r3`. The value: one of the DS's buttons (`a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right`; two buttons can be the same DS button) or a job: `menu` (the in-game menu, on release), `swap` (the screens, as F + SELECT, remembered for the game), `save` / `load` (slot 1, as F + R / F + L), `ff` (fast-forward on and off, as F + X), `ffhold` (fast-forward while held), `screenshot`, `blow` (the game hears a blow on the mic while it's held, the menu's Blow, the mic on or off), `none`. A keyboard's keys follow the button they stand for. F + a button, HOME and the menu's own keys never change, so no setting leaves you without the menu. A value it doesn't know is logged and the button keeps its own |
++| `input.<button>` | as the pad is printed; `input.l2` `swap`, `input.r2` `ff`, `input.l3` `blow`, `input.r3` `none` (the RG DS Plus has no R3) | what a button of the pad does in a game. `<button>`: `a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right` `l2` `r2` `l3` `r3`. The value: one of the DS's buttons (`a` `b` `x` `y` `l` `r` `start` `select` `up` `down` `left` `right`; two buttons can be the same DS button) or a job: `menu` (the in-game menu, on release), `swap` (the screens, as F + SELECT, remembered for the game), `save` / `load` (slot 1, as F + R / F + L), `ff` (fast-forward on and off, as F + X), `ffhold` (fast-forward while held), `screenshot`, `blow` (the game hears a blow on the mic while it's held, the menu's Blow, the mic on or off), `none`. A keyboard's keys follow the button they stand for. F + a button, HOME and the menu's own keys never change, so no setting leaves you without the menu. A value it doesn't know is logged and the button keeps its own |
  | `kms.lowlat` | `off` | **Experimental.** `on`: low latency. Each frame is aimed at a vblank: the emulator's thread starts it as late as its measured time allows (its own work and the presenter's 2D wait and shader pass, each a decaying maximum, plus `kms.lowlat_pad_us`, plus up to 16 ms more after frames that showed late; never the time a frame waited for the panels), so the buttons are read as late as possible. Frames are held to their own vblank's window (never shown a refresh early) and up to three may wait, so a game slower than a refresh starts the next frame early instead of stuttering; the next frame always aims at the refresh after the last waiting one. Measured in 0.5.0 (agent-qa/LL2.md): 15-21 ms from a frame's start to the panels instead of 48-60, 0-3 repeats a minute in a Mario Kart DS race (single frames of 20-60 ms can't be hidden without buffering). cpugov uses a tighter step-down rule (`cpugov.tail` 0.8) and its own memory (`<rom>.<scale>.lowlat`). The game runs at the panels' rate (as `kms.pace=display`). `kms.lowlat_trace=<file>` writes each frame's times at the quit (also without `kms.lowlat`). `runahead1` / `runahead2`: that and run-ahead (`runahead`). A `[lowlat]` log line every 10 s |
  | `kms.lowlat_margin_us` | `1500` | with `kms.lowlat`: the deadline, this long before the earlier panel's vblank; +300 per commit that missed its vblank (at most 5000), back down after a clean 10 s |
  | `kms.lowlat_pad_us` | `1000` | with `kms.lowlat`: added to the frames' measured time when a frame is started |
 diff --git a/bananads/src/frontend_kms.cpp b/bananads/src/frontend_kms.cpp
-index 6af46f9..7c5c80e 100644
+index 6af46f9..e820ed0 100644
 --- a/bananads/src/frontend_kms.cpp
 +++ b/bananads/src/frontend_kms.cpp
 @@ -1132,6 +1132,42 @@ static uint32_t pad_bit(int code) {
@@ -54,7 +54,7 @@ index 6af46f9..7c5c80e 100644
 +    {"y", BTN_WEST, KEY_Y, 11}, {"l", BTN_TL, KEY_PAGEUP, 9}, {"r", BTN_TR, KEY_PAGEDOWN, 8},
 +    {"start", BTN_START, KEY_S, 3}, {"select", BTN_SELECT, KEY_TAB, 2}, {"up", BTN_DPAD_UP, KEY_UP, 6},
 +    {"down", BTN_DPAD_DOWN, KEY_DOWN, 7}, {"left", BTN_DPAD_LEFT, KEY_LEFT, 5}, {"right", BTN_DPAD_RIGHT, KEY_RIGHT, 4},
-+    {"l2", BTN_TL2, 0, PAD_NONE}, {"r2", BTN_TR2, 0, PAD_FFHOLD}, {"l3", BTN_THUMBL, 0, PAD_BLOW}, {"r3", BTN_THUMBR, 0, PAD_SWAP}};  // (the RG DS Plus has no R3)
++    {"l2", BTN_TL2, 0, PAD_SWAP}, {"r2", BTN_TR2, 0, PAD_FF}, {"l3", BTN_THUMBL, 0, PAD_BLOW}, {"r3", BTN_THUMBR, 0, PAD_NONE}};  // (the RG DS Plus has no R3)
 +static int g_pad[P_COUNT];  // each button's job (pad_init)
 +static int pad_index(int code) {
 +    for (int i = 0; i < P_COUNT; i++)

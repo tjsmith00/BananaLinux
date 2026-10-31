@@ -95,6 +95,17 @@ rather than "off": its **Microphone** row writes `mic.source = device|none`, and
 `mic.threshold`. The launchers write the mic keys a card is missing once and never touch a card that already has
 them, so a choice made in Settings survives updates.
 
+**Buttons** (Settings > Nintendo DS > Buttons) are the one setting both emulators share, so a DS game plays the same
+in either: what L2, R2, L3 and R3 do, in `banana/settings.conf` (`nds_btn_l2` ... `nds_btn_r3`: L2 swaps the screens,
+R2 fast-forwards on and off, L3 blows on the mic, R3 nothing by default; the RG DS Plus has no R3). F + R saves and
+F + L loads a state in both, whatever they are. `nds-buttons` gives them to each emulator as it starts: BananaDS as
+`BANANADS_INPUT_<BUTTON>`; DraStic as its controls in `drastic.cfg` (save and load state, fast-forward, the fake
+microphone, the menu, a DS button: controls_a, then controls_b), the screens' swap as SuperDrastic's
+`DSFLIP_SWAP_BUTTONS`. DraStic's save and load state controls always have a button, joystick buttons 30 and 31 (no pad
+has them) when none of the four is set to them: SuperDrastic presses them for F + R and F + L, its menu's Save and
+Load and Quick resume (`buildroot/patches/superdrastic/0001-*`). Those lines of `drastic.cfg` are Banana's, set again
+at every start; the rest of DraStic's buttons stay its own menu's.
+
 ## BananaDS
 
 BananaDS (melonDS's core with SuperDrastic's display path, governor and sound; `bananads/` in
@@ -112,10 +123,10 @@ handhelds themselves.
   still shows a new frame each refresh. In QEMU the virtio GPU can't scale planes, so the frame is copied and scaled
   by a whole number on the CPU instead.
 - **Input**: the pad and keyboards read (never grabbed), the bottom touchscreen by `BANANADS_TOUCH`. F + Start quits
-  (with the resume state), F + R saves slot 1, F + L loads it. L2, R2, L3 and R3 do what their `input.<button>` says
-  (Settings > Nintendo DS > Buttons; BananaDS takes it for any button, set by hand): a DS button, or a job (the menu, swap the screens, save or load slot 1,
-  fast-forward held or on/off, a screenshot, a blow on the mic while held, nothing). The pad as printed by default,
-  R2 fast-forward while held, L3 blows and R3 swaps the screens (the RG DS Plus has no R3) (`buildroot/patches/bananads/0010-*`, #55, #52).
+  (with the resume state), F + R saves slot 1, F + L loads it. Each button does what its `input.<button>` says
+  (`buildroot/patches/bananads/0010-*`, #55, #52): a DS button, or a job (the menu, swap the screens, save or load slot
+  1, fast-forward held or on/off, a screenshot, a blow on the mic while held, nothing). L2, R2, L3 and R3's come from
+  Settings > Nintendo DS > Buttons (below); the others are the pad as printed unless bananads.conf says otherwise.
 - **In-game menu**: F or HOME (or a button set to Menu) pauses the game and opens SuperDrastic's menu, in BananaOS's colours, on both panels: Resume,
   Save and Load (8 slots with their pictures; a load can be undone), Quick settings (volume and brightness the way
   bananad keeps them, the microphone's meter and a blow), Restart game, Quit game. Touch works on it too.
