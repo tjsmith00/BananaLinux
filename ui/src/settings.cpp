@@ -840,10 +840,36 @@ namespace banana
 		addShelfRows();
 		// the sections in the order they first come, those with a tile first (the grid is the first groups) and each
 		// section's rows together: a subpage's rows are added beside the row that opens it, wherever that is
+		// The grid's tiles and each page's rows most used first (ORDER, by section and label); what ORDER doesn't name keeps
+		// the order it was added in, after what it does name
+		static const std::vector<std::pair<std::string, std::vector<std::string>>> ORDER = {
+			{ "", { "Nintendo DS", "Other systems", "Display & sound", "Network", "Sleep & power", "System" } },	// the tiles
+			{ "Nintendo DS", { "Emulator", "Buttons", "SuperDrastic", "BananaDS", "Quick resume", "DS language", "DS name" } },
+			{ "Other systems", { "Buttons", "Picture & sound", "Quick resume", "Screen", "Second screen", "Emulators", "RetroAchievements", "Reset RetroArch" } },
+			{ "Display & sound", { "Volume", "Top brightness", "Bottom brightness", "Theme", "Accent colour", "Shown systems", "Menu sounds", "Screen colours", "Menu look", "Text on accent" } },
+			{ "Network", { "Wi-Fi", "Network", "Bluetooth", "Home server", "File sharing" } },
+			{ "Sleep & power", { "Sleep when idle", "Closing the lid", "Dim when idle", "Power off after sleeping", "LEDs", "Waking up" } },
+			{ "System", { "Updates", "Language", "Time zone", "Box art", "Hotkeys", "About", "Credits", "First-time setup", "Reset system settings", "Reset emulator settings" } },
+			{ "SuperDrastic", { "Shader", "3D resolution", "CPU clock", "Frame pacing", "Threaded 3D", "Microphone", "Low latency (experimental)", "Hotkeys", "Reset buttons", "Reset DraStic" } },
+			{ "BananaDS", { "Shader", "3D resolution", "CPU clock", "Frame pacing", "Timing", "Microphone", "Mic sensitivity", "Edge marking", "Fog", "Low latency (experimental)", "Hotkeys", "Reset BananaDS" } },
+			{ "Picture & sound", { "Shader", "Screen border", "VSync", "Audio latency" } },
+			{ "Menu look", { "Clock", "Battery", "DS cartridges", "Motion", "Boot animation" } },
+		};
+		auto place = [&](const std::string& section, const std::string& name)
+		{
+			for (auto& o : ORDER)
+				if (o.first == section)
+					for (size_t i = 0; i < o.second.size(); i++) if (o.second[i] == name) return (int)i;
+			return 1000;
+		};
 		std::map<std::string, int> rank;
 		for (auto& it : items)
-			if (!rank.count(it.section)) rank[it.section] = (tileless(it.section) ? 100000 : 0) + (int)rank.size();
-		std::stable_sort(items.begin(), items.end(), [&](const Item& a, const Item& b) { return rank[a.section] < rank[b.section]; });
+			if (!rank.count(it.section)) rank[it.section] = (tileless(it.section) ? 100000 : place("", it.section) * 1000) + (int)rank.size();
+		std::stable_sort(items.begin(), items.end(), [&](const Item& a, const Item& b)
+		{
+			const int ra = rank[a.section], rb = rank[b.section];
+			return ra != rb ? ra < rb : place(a.section, a.label) < place(b.section, b.label);
+		});
 	}
 
 	void Settings::load(Item& it)
