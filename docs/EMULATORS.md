@@ -112,6 +112,8 @@ load a state, the menu, pause, a screenshot, nothing; R2 fast-forwards by defaul
 with F held, so `run-retroarch` lists the jobs in `/run/banana/ra-buttons` and moves those buttons' RetroPad binds to
 joystick buttons no pad has (30-33; put back after the game), and bananad sends the job's command down RetroArch's
 stdin pipe when the button is pressed without F. PlayStation and N64 games keep the four buttons, which they use.
+The left stick works as the d-pad in every system but N64 (RetroArch's `input_player1_analog_dpad_mode = "1"`, for the
+run only); a PlayStation game with the core's DualShock pad keeps its analog stick.
 
 ## BananaDS
 

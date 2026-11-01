@@ -219,7 +219,7 @@ grep -q '^joypad_autoconfig_dir = "/run/' $CFG && set_cfg joypad_autoconfig_dir 
 RBF=/run/banana/ra-buttons
 RBCFG=/run/banana/retroarch-buttons.cfg
 RBKEEP=/data/retroarch/.banana-buttons.keep
-RBKEYS='^input_player1_(l2|r2|l3|r3|a|b|x|y)_btn = '
+RBKEYS='^input_player1_((l2|r2|l3|r3|a|b|x|y)_btn|analog_dpad_mode) = '
 if [ -f $RBKEEP ]; then
     sed -i -E "/$RBKEYS/d" $CFG && cat $RBKEEP >> $CFG && rm -f $RBKEEP && sync
     echo "run-retroarch: the button lines of a run cut short put back" >&2
@@ -249,10 +249,14 @@ case $BANANA_SYSTEM in
     # Other systems > Buttons > Swap A/B and X/Y (ra_swap_ab): the RetroPad's A on the pad's B and so on (the profile's
     # A 1, B 0, X 2, Y 3), in the game and in RetroArch's menu
     [ "$(setting ra_swap_ab)" = on ] && printf 'input_player1_a_btn = "0"\ninput_player1_b_btn = "1"\ninput_player1_x_btn = "3"\ninput_player1_y_btn = "2"\n' >> $RBCFG
+    # the left stick as the d-pad (#142) on every system whose pad had no stick: all but N64. RetroArch's "Left Analog"
+    # (1), not the forced one: it only applies while the core's pad is digital, so a PlayStation game with the core's
+    # DualShock keeps its analog stick
+    [ "$BANANA_SYSTEM" != n64 ] && echo 'input_player1_analog_dpad_mode = "1"' >> $RBCFG
     if [ -f $RBCFG ]; then
         grep -E "$RBKEYS" $CFG > $RBKEEP.new; mv -f $RBKEEP.new $RBKEEP && sync
         RBA="|$RBCFG"
-        echo "run-retroarch: buttons: $(tr '\n' ' ' 2>/dev/null < $RBF)$(grep -q '_a_btn' $RBCFG && echo 'A/B and X/Y swapped')" >&2
+        echo "run-retroarch: buttons: $(tr '\n' ' ' 2>/dev/null < $RBF)$(grep -q '_a_btn' $RBCFG && echo 'A/B and X/Y swapped ')$(grep -q analog_dpad $RBCFG && echo 'left stick as d-pad')" >&2
     fi
     ;;
 esac
