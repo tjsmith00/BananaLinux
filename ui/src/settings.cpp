@@ -863,6 +863,8 @@ namespace banana
 			return 1000;
 		};
 		std::map<std::string, int> rank;
+		groupIcon.clear();
+		for (auto& it : items) groupIcon.emplace(it.section, it.icon);
 		for (auto& it : items)
 			if (!rank.count(it.section)) rank[it.section] = (tileless(it.section) ? 100000 : place("", it.section) * 1000) + (int)rank.size();
 		std::stable_sort(items.begin(), items.end(), [&](const Item& a, const Item& b)
@@ -2110,7 +2112,7 @@ namespace banana
 		be->beginScreen(0);
 		box("screen", false, 0, 0, 640, 480);
 		box("hero", false, 18, 20, 604, 436);
-		icon(first.icon, 50, 56, 3);
+		icon(groupIcon[first.section], 50, 56, 3);
 		text("Settings", true, 17, 170, 62, p.muted, true, 1.4f);
 		text(groups[g0], true, 30, 170, 88, p.ink);
 		char n[32];
@@ -2136,7 +2138,7 @@ namespace banana
 		{
 			bool on = std::fabs(g % 3 - aCol) < 0.5f && std::fabs(g / 3 - aRow) < 0.5f;
 			float x = 18 + (g % 3) * 204, y = 82 + (g / 3) * 166;
-			iconCentred(items[groupStart(g)].icon, x + 98, y + 22, 2);
+			iconCentred(groupIcon[items[groupStart(g)].section], x + 98, y + 22, 2);
 			// centred when it fits; else in the tile's width, "..." or scrolling on the picked tile
 			auto centred = [&](const std::string& t, bool med, float size, float top, float w, const Color& c)
 			{

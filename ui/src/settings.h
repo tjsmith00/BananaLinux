@@ -184,6 +184,7 @@ namespace banana
 		// the groups (the items' sections, in order): Settings opens on a grid of them, as the in-game menu's main page;
 		// A opens one's list, B goes back to the grid
 		std::vector<std::string> groups;
+		std::map<std::string, std::string> groupIcon;	// a section's icon: its first row's as build adds them, whatever ORDER puts first
 		int gsel = 0;
 		bool inGroups = true;
 		int groupOf(int item) const;			// the group an item is in
