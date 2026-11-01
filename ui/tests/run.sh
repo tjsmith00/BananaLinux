@@ -313,7 +313,7 @@ for size in 640x480 1024x768; do
     # (ra_vsync = lcd: a value from another key's list, which the start (normalizeSettings) must put back; the system
     # reset leaves ra_vsync alone)
     # (a system's own RetroArch button, ra_btn_l2.snes, an emulator key the system reset keeps; ra_btn_r3.gba = bogus
-    # a value its list hasn't, which the start drops: no line is "Same as all")
+    # a value its list hasn't, which the start drops: no line is the template's or the game's own)
     for kv in "theme = light" "sounds = off" "core.gba = mgba" "ra_shader = crt" "ra_vsync = lcd" "ra_btn_l2.snes = load" "ra_btn_r3.gba = bogus"; do
         k=${kv%% *}
         grep -q "^$k = " "$FX/data/settings.conf" && sed -i "s/^$k = .*/$kv/" "$FX/data/settings.conf" || printf '%s\n' "$kv" >> "$FX/data/settings.conf"

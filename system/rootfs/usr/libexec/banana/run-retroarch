@@ -9,14 +9,6 @@ setting() {
     [ -n "$v" ] || v=$(sed -n "/^ *$1 *= */{s///;h};\${x;p}" /etc/banana/settings.conf 2>/dev/null)
     printf '%s' "$v"
 }
-# syssetting <key>: this system's own (Settings > Other systems > RetroArch hotkeys > the system: <key>.<system>), else
-# with no line or "all" the shared <key>
-syssetting() {
-    v=
-    [ -n "$BANANA_SYSTEM" ] && v=$(setting "$1.$BANANA_SYSTEM")
-    { [ -z "$v" ] || [ "$v" = all ]; } && v=$(setting "$1")
-    printf '%s' "$v"
-}
 # Settings > Other systems > Emulators > the system's core (settings.conf's core.<system>, BANANA_SYSTEM from banana-ui): another
 # installed core instead of systems.conf's, e.g. mGBA for the Game Boy Advance (RetroAchievements), or one downloaded
 # with RetroArch's Core Downloader; one not installed is ignored
@@ -207,15 +199,13 @@ if [ -f $KEEP ]; then
     echo "run-retroarch: the hotkey lines of a run cut short put back" >&2
 fi
 grep -q '^joypad_autoconfig_dir = "/run/' $CFG && set_cfg joypad_autoconfig_dir /usr/share/libretro/autoconfig
-# Settings > Other systems > Buttons (ra_btn_l2, ra_btn_r2, ra_btn_l3, ra_btn_r3): L2, R2, L3 or R3 alone, a job of
+# Settings > Other systems > Buttons > the system (ra_btn_l2.<system> ... ra_btn_r3.<system>): L2, R2, L3 or R3 alone, a job of
 # RetroArch's instead of the game's button (fast-forward on and off, save or load a state, its menu, pause, a
 # screenshot, nothing), as Nintendo DS > Buttons is for the DS. RetroArch's hotkeys only work with F held, so bananad
 # sends the job's command down RetroArch's stdin pipe (/run/banana/ra-buttons: "<button> <command>" lines, its list
 # for this game), and the button is moved off the game: its RetroPad bind on joystick button 30-33, which no pad has
-# (a bind of "nul" falls back to the autoconfig profile's). A system's own page (RetroArch hotkeys > the system:
-# ra_btn_l2.<system>...) gives a button another job in its games alone; with no line or "all" the shared one. Not
-# PlayStation and N64 from the shared ones, whose games use those buttons: theirs are the game's own unless their own
-# page gives one a job. What RetroArch saves of the binds on exit is put back below, as for the hotkeys.
+# (a bind of "nul" falls back to the autoconfig profile's). No line: the template's (R2 fast-forwards in the 2D
+# systems' games), else the game's own. What RetroArch saves of the binds on exit is put back below, as for the hotkeys.
 RBF=/run/banana/ra-buttons
 RBCFG=/run/banana/retroarch-buttons.cfg
 RBKEEP=/data/retroarch/.banana-buttons.keep
@@ -231,11 +221,7 @@ case $BANANA_SYSTEM in
 *)
     n=30
     for b in l2 r2 l3 r3; do
-        # (PlayStation and N64 their own page's alone, not the shared ones: "all" or no line is the game's button there)
-        case $BANANA_SYSTEM in
-        psx|n64) j=$(setting "ra_btn_$b.$BANANA_SYSTEM") ;;
-        *) j=$(syssetting ra_btn_$b); [ -n "$j" ] || { [ $b = r2 ] && j=ff; } ;;
-        esac
+        j=$(setting "ra_btn_$b.$BANANA_SYSTEM")
         case $j in
         ff) c=FAST_FORWARD ;; save) c=SAVE_STATE ;; load) c=LOAD_STATE ;; menu) c=MENU_TOGGLE ;;
         pause) c=PAUSE_TOGGLE ;; screenshot) c=SCREENSHOT ;; none) c=- ;; *) c= ;;
@@ -246,9 +232,9 @@ case $BANANA_SYSTEM in
         fi
         n=$((n + 1))
     done
-    # Other systems > Buttons > Swap A/B and X/Y (ra_swap_ab): the RetroPad's A on the pad's B and so on (the profile's
-    # A 1, B 0, X 2, Y 3), in the game and in RetroArch's menu
-    [ "$(setting ra_swap_ab)" = on ] && printf 'input_player1_a_btn = "0"\ninput_player1_b_btn = "1"\ninput_player1_x_btn = "3"\ninput_player1_y_btn = "2"\n' >> $RBCFG
+    # Other systems > Buttons > the system > Swap A/B and X/Y (ra_swap_ab.<system>): the RetroPad's A on the pad's B and
+    # so on (the profile's A 1, B 0, X 2, Y 3), in the game and in RetroArch's menu
+    [ "$(setting "ra_swap_ab.$BANANA_SYSTEM")" = on ] && printf 'input_player1_a_btn = "0"\ninput_player1_b_btn = "1"\ninput_player1_x_btn = "3"\ninput_player1_y_btn = "2"\n' >> $RBCFG
     # the left stick as the d-pad (#142) on every system whose pad had no stick: all but N64. RetroArch's "Left Analog"
     # (1), not the forced one: it only applies while the core's pad is digital, so a PlayStation game with the core's
     # DualShock keeps its analog stick

@@ -42,7 +42,7 @@ namespace banana
 		const char* const LOGIN[] = { "password", "guest", nullptr };
 		const char* const BT_AUDIO[] = { "latency", "quality", nullptr };
 		// Nintendo DS > Buttons: L2, R2, L3 and R3's job in both DS emulators (nds-buttons)
-		// Other systems > Buttons: L2, R2, L3 and R3 in RetroArch's games (run-retroarch, bananad)
+		// Other systems > Buttons > a system: L2, R2, L3 and R3 in its RetroArch games (run-retroarch, bananad)
 		const char* const RA_BTN[] = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none", nullptr };
 		const char* const NDS_BTN[] = { "a", "b", "x", "y", "l", "r", "start", "select", "swap", "save", "load", "ff", "blow", "menu", "none", nullptr };
 
@@ -74,11 +74,12 @@ namespace banana
 			{ "ra_border", "off", ENUM, ON_OFF, 0, 0, true },
 			{ "ra_audio_latency", "64", ENUM, LATENCY, 0, 0, true },
 			{ "ra_vsync", "on", ENUM, ON_OFF, 0, 0, true },
+			// (only as <key>.<system>, a system's own: these are their values; the template has R2's fast-forward)
 			{ "ra_btn_l2", "game", ENUM, RA_BTN, 0, 0, true, true },
-			{ "ra_btn_r2", "ff", ENUM, RA_BTN, 0, 0, true, true },
+			{ "ra_btn_r2", "game", ENUM, RA_BTN, 0, 0, true, true },
 			{ "ra_btn_l3", "game", ENUM, RA_BTN, 0, 0, true, true },
 			{ "ra_btn_r3", "game", ENUM, RA_BTN, 0, 0, true, true },
-			{ "ra_swap_ab", "off", ENUM, ON_OFF, 0, 0, true },
+			{ "ra_swap_ab", "off", ENUM, ON_OFF, 0, 0, true, true },
 			{ "nds_emulator", "superdrastic", ENUM, NDS, 0, 0, true },
 			{ "nds_btn_l2", "swap", ENUM, NDS_BTN, 0, 0, true },
 			{ "nds_btn_r2", "ff", ENUM, NDS_BTN, 0, 0, true },
@@ -110,27 +111,15 @@ namespace banana
 			return nullptr;
 		}
 
-		// <key>.<system> for a perSystem key (Other systems > RetroArch hotkeys > a system's page: ra_btn_l2.gba,
-		// ra_btn_r2.snes...; run-retroarch): the key's own values and "all", the shared key's. No default: a card without
-		// the line (or a reset) has the shared one, and PlayStation and N64 their game's own buttons
+		// <key>.<system> for a perSystem key (Other systems > Buttons > a system's page: ra_btn_l2.gba, ra_swap_ab.snes...;
+		// run-retroarch): the key's own values. No default here: a card without the line has the template's, else the
+		// row's first (the game's own, off)
 		const KeyDef* findSystem(const std::string& key)
 		{
 			size_t dot = key.find('.');
 			if (dot == std::string::npos || dot + 1 == key.size()) return nullptr;
 			const KeyDef* base = find(key.substr(0, dot));
-			if (!base || !base->perSystem) return nullptr;
-			// (each base's made once: "all" before its values, the list's storage kept beside the KeyDef that points at it)
-			static std::map<const KeyDef*, std::pair<std::vector<const char*>, KeyDef>> made;
-			auto it = made.find(base);
-			if (it == made.end())
-			{
-				std::vector<const char*> allowed = { "all" };
-				for (const char* const* a = base->allowed; a && *a; a++) allowed.push_back(*a);
-				allowed.push_back(nullptr);
-				it = made.emplace(base, std::make_pair(std::move(allowed), KeyDef{ "", "", ENUM, nullptr, 0, 0, true })).first;
-				it->second.second.allowed = it->second.first.data();
-			}
-			return &it->second.second;
+			return base && base->perSystem ? base : nullptr;
 		}
 
 		// a key settings.conf knows: the schema's, a core.<system> or a system's own hotkeys and buttons

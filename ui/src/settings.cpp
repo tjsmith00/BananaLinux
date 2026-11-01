@@ -436,9 +436,9 @@ namespace banana
 		for (const auto& c : sys.cores)
 			if (coreInstalled(c.first)) { names.push_back(c.second); values.push_back(c.first); }
 	}
-	// a RetroArch system's own hotkeys page (Other systems > RetroArch hotkeys > the system): its row's key, its section
-	static std::string raHotkeysKey(const RaSystem& sys) { return std::string("hotkeys_ra.") + sys.id; }
-	static std::string raHotkeysSection(const RaSystem& sys) { return std::string(sys.label) + " hotkeys"; }
+	// a RetroArch system's own buttons page (Other systems > Buttons > the system): its row's key, its section
+	static std::string raButtonsKey(const RaSystem& sys) { return std::string("ra_buttons.") + sys.id; }
+	static std::string raButtonsSection(const RaSystem& sys) { return std::string(sys.label) + " buttons"; }
 	// which cores are installed, for every system: Settings builds its rows again when a download changed it
 	static std::string coreSignature()
 	{
@@ -607,7 +607,7 @@ namespace banana
 				"", "nds-reset-drastic", { "" }, { "" }, Item::ACTION);
 		}
 		// Other systems (RetroArch): what every game shares, then pages: Second screen (the game panel and its companions),
-		// Picture & sound, Emulators (each system's core, when it has a choice), Buttons and RetroArch hotkeys
+		// Picture & sound, Emulators (each system's core, when it has a choice) and Buttons (a page for each system)
 		const char* O = "Other systems";
 		add(O, "gamepad", "Screen", "Which panel the systems other than the DS use (RetroArch). The other one shows the game panel (Second screen), or is switched off.",
 			"/data/retroarch/retroarch.cfg", "video_monitor_index", { "Top", "Bottom" }, { "2", "1" });
@@ -660,8 +660,7 @@ namespace banana
 				add(O, "gamepad", "Emulators", "Each system's emulator (RetroArch core), for the systems that have more than one: the first is BananaOS's own. Cores downloaded with RetroArch's Core Downloader (its Online Updater) are listed too.", "", "ra_cores", {}, {}, Item::PAGE);
 		}
 		// L2, R2, L3 and R3 alone in RetroArch's games (the page below; run-retroarch, bananad)
-		add(O, "gamepad", "Buttons", "What L2, R2, L3 and R3 do alone in a game: the game's own button, or fast-forward, save or load a state, RetroArch's menu, pause, a screenshot, nothing. Not PlayStation and N64, whose games use them. F + R saves and F + L loads a state, as on the DS.", "", "ra_buttons", {}, {}, Item::PAGE);
-		add(O, "gamepad", "RetroArch hotkeys", "The buttons that do something in RetroArch's games: F + a button (its menu, quitting, save states, fast-forward, rewind) and L2, R2, L3 and R3 as Buttons has them.", "", "hotkeys_ra", {}, {}, Item::PAGE);
+		add(O, "gamepad", "Buttons", "Each system's own buttons: what L2, R2, L3 and R3 do alone in its games (the game's own button, or fast-forward, save or load a state, RetroArch's menu, pause, a screenshot, nothing), and A/B and X/Y swapped or not. F + R saves and F + L loads a state, as on the DS.", "", "ra_buttons", {}, {}, Item::PAGE);
 		add(O, "gamepad", "Reset RetroArch", "RetroArch's settings back to Banana's: for a button bound away in RetroArch's menu (an A that does something else, a hotkey on a face button). Its controls, remaps and overrides go to retroarch/backup-<date> on the card. Saves, states, the RetroAchievements account and these settings stay. Press A twice.",
 			"", "ra_reset", { "" }, { "" }, Item::ACTION);
 		const char* W = "Network";
@@ -738,11 +737,11 @@ namespace banana
 		add(S, "gear", "About", "", "", "", {}, {}, Item::INFO);
 		if (!readCredits().empty())
 			add(S, "gear", "Credits", "The people who made this version of BananaOS: development, translations, testing and thanks. A opens the list.", "", "credits", {}, {}, Item::PAGE);
-		add(S, "gear", "Hotkeys", "The buttons that do something everywhere and in the menu. Each emulator's own: Nintendo DS > SuperDrastic > Hotkeys and BananaDS > Hotkeys, Other systems > RetroArch hotkeys.", "", "hotkeys", {}, {}, Item::PAGE);
+		add(S, "gear", "Hotkeys", "The buttons that do something everywhere and in the menu. Each DS emulator's own: Nintendo DS > SuperDrastic > Hotkeys and BananaDS > Hotkeys.", "", "hotkeys", {}, {}, Item::PAGE);
 		// the hotkey pages: System > Hotkeys (everywhere and the menu) and one for each emulator (from Nintendo DS and
-		// Other systems). What each does, from bananad, the menu, SuperDrastic's drastic.cfg and menu, BananaDS's menu and
-		// RetroArch's joypad profile (retrogame_joypad.cfg: F is its hotkey). Rows to read, key "hk": what each does, or
-		// for L2, R2, L3 and R3 their Buttons row's job as it is now (buttonRows' mirror: nds_btn_*, ra_btn_*)
+		// Nintendo DS). What each does, from bananad, the menu, SuperDrastic's drastic.cfg and menu and BananaDS's menu.
+		// Rows to read, key "hk": what each does, or for L2, R2, L3 and R3 their Buttons row's job as it is now
+		// (buttonRows' mirror: nds_btn_*)
 		{
 			struct Row { const char* keys; const char* what; const char* help; };
 			auto rows = [&](const char* section, const char* icon, std::initializer_list<Row> rs)
@@ -776,33 +775,6 @@ namespace banana
 				{ "F + L", "Load state", "In BananaDS: slot 1, loaded back." },
 			});
 			buttonRows("BananaDS hotkeys", "nds", dsHelp, "", "nds_btn_", "", {}, {}, Item::INFO);
-			rows("RetroArch hotkeys", "gamepad", {
-				{ "F + X", "Its menu", "In RetroArch's games: RetroArch's own menu." },
-				{ "F + START", "Quit", "In RetroArch's games: back to the menu." },
-				{ "F + R / F + L", "Save / load state", "In RetroArch's games: the current state slot." },
-				{ "F + R2", "Fast-forward", "In RetroArch's games: on, and off again." },
-				{ "F + L2", "Rewind", "In RetroArch's games: held, the game runs backwards." },
-				{ "F + Y", "Frame rate", "In RetroArch's games: shown in a corner, or not." },
-			});
-			buttonRows("RetroArch hotkeys", "gamepad", "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own), as Other systems > Buttons has it now; that page gives it another job. A system's own page, below, can give it another job in that system's games alone.", "", "ra_btn_", "", {}, {}, Item::INFO);
-			// each system's own page, a row for it at the end of RetroArch's: its L2, R2, L3 and R3, the shared ones
-			// above ("Same as all", the first: a card without the line) or its own (ra_btn_l2.<system>...; run-retroarch). PlayStation and N64 games use L2 to R3: theirs start as the game's own
-			// and don't follow the shared ones
-			for (const auto& sys : RA_SYSTEMS)
-				add("RetroArch hotkeys", "gamepad", sys.label, "This system's own L2, R2, L3 and R3: their jobs in its games alone. Same as all follows the rows above.",
-					"", raHotkeysKey(sys).c_str(), {}, {}, Item::PAGE);
-			for (const auto& sys : RA_SYSTEMS)
-			{
-				const std::string sec = raHotkeysSection(sys), id = sys.id;
-				const bool own = id == "psx" || id == "n64";
-				std::vector<std::string> names = { "Game's own", "Fast-forward", "Save state", "Load state", "Menu", "Pause", "Screenshot", "Nothing" };
-				std::vector<std::string> values = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none" };
-				if (!own) { names.insert(names.begin(), "Same as all"); values.insert(values.begin(), "all"); }
-				const std::string help = own
-					? "Alone, in this system's games, which use it: Game's own leaves it the game's button. Another job (fast-forward, a save or load state, RetroArch's menu, pause, a screenshot, nothing) takes it from the game. With F held, it is RetroArch's hotkey."
-					: "Alone, in this system's games. Same as all: as Other systems > Buttons has it. Game's own: the game's button. Fast-forward: on, and off again. Save and load state: the current slot. Menu: RetroArch's. With F held, it is RetroArch's hotkey.";
-				buttonRows(sec.c_str(), "gamepad", help, menu, "ra_btn_", "." + id, names, values);
-			}
 		}
 		// Power: Y on the groups (no tile of its own: the grid is the six above), straight from the home screen's START
 		// the DS buttons page (Nintendo DS > Buttons): L2, R2, L3 and R3's jobs in banana/settings.conf (nds_btn_*, defaults
@@ -820,16 +792,24 @@ namespace banana
 			add(DB, "nds", "Reset buttons", "L2, R2, L3 and R3 back to Banana's: L2 swaps the screens, R2 fast-forwards, L3 blows on the mic, R3 does nothing; A, B, X and Y as printed. Press A twice.",
 				"", "nds-reset-ds-buttons", { "" }, { "" }, Item::ACTION);
 		}
-		// the other systems' buttons page (Other systems > Buttons): L2, R2, L3 and R3's jobs in banana/settings.conf
-		// (ra_btn_*, defaults in settings_defaults.cpp), for RetroArch's games but PlayStation's and N64's
+		// the other systems' buttons (Other systems > Buttons): a page for each system, its L2, R2, L3 and R3's jobs and
+		// Swap A/B and X/Y in banana/settings.conf (ra_btn_l2.<system>... ra_swap_ab.<system>; run-retroarch). No line:
+		// the image's template (R2 fast-forwards in the 2D systems' games), else the game's own and as printed
 		{
 			const char* RB = "Other systems buttons";
+			for (const auto& sys : RA_SYSTEMS)
+				add(RB, "gamepad", sys.label, "This system's buttons: what L2, R2, L3 and R3 do alone in its games, and A/B and X/Y swapped or not.",
+					"", raButtonsKey(sys).c_str(), {}, {}, Item::PAGE);
 			const std::vector<std::string> names = { "Game's own", "Fast-forward", "Save state", "Load state", "Menu", "Pause", "Screenshot", "Nothing" };
 			const std::vector<std::string> values = { "game", "ff", "save", "load", "menu", "pause", "screenshot", "none" };
-			const char* help = "Alone, in a GBA, Game Boy, NES, SNES or Mega Drive game (PlayStation and N64 games keep their own). Game's own: the game's button, as before. Fast-forward: on, and off again (as F + R2). Save and load state: the current slot (as F + R and F + L). Menu: RetroArch's (as F + X). With F held, the button is RetroArch's hotkey, as on the Hotkeys page.";
-			buttonRows(RB, "gamepad", help, menu, "ra_btn_", "", names, values);
-			add(RB, "gamepad", "Swap A/B and X/Y", "On: A and B swap places, and X and Y, in every RetroArch game (PlayStation and N64 too) and in RetroArch's own menu: for hands used to the other layout. F + a button stays as printed.",
-				menu, "ra_swap_ab", { "Off", "On" }, { "off", "on" });
+			for (const auto& sys : RA_SYSTEMS)
+			{
+				const std::string sec = raButtonsSection(sys), id = sys.id;
+				const char* help = "Alone, in this system's games. Game's own: the game's button. Fast-forward: on, and off again (as F + R2). Save and load state: the current slot (as F + R and F + L). Menu: RetroArch's (as F + X). With F held, the button is RetroArch's hotkey.";
+				buttonRows(sec.c_str(), "gamepad", help, menu, "ra_btn_", "." + id, names, values);
+				add(sec.c_str(), "gamepad", "Swap A/B and X/Y", "On: A and B swap places, and X and Y, in this system's games and in RetroArch's own menu while one runs: for hands used to the other layout. F + a button stays as printed.",
+					menu, ("ra_swap_ab." + id).c_str(), { "Off", "On" }, { "off", "on" });
+			}
 		}
 		const char* PW = "Power";
 		add(PW, "moon", "Sleep", "The handheld sleeps, as with a press of the power button; a game running is paused. Press the power button to wake it.", "", "sleep", { "" }, { "" }, Item::ACTION);
@@ -1168,8 +1148,7 @@ namespace banana
 				{ "nds_bananads", "BananaDS" },
 				{ "hotkeys_sd", "SuperDrastic hotkeys" },
 				{ "hotkeys_bds", "BananaDS hotkeys" },
-				{ "hotkeys_ra", "RetroArch hotkeys" },
-				{ "ra_second", "Second screen", "retroarch_panel" },
+					{ "ra_second", "Second screen", "retroarch_panel" },
 				{ "ra_picture", "Picture & sound", "ra_shader" },
 				{ "ra_cores", "Emulators" },
 				{ "net_bt", "Bluetooth", "bluetooth" },
@@ -1182,7 +1161,7 @@ namespace banana
 				{ "homesync", "Home server" },
 				{ "hs_systems", "Home server systems" },
 			};
-			for (const auto& sys : RA_SYSTEMS) v.push_back({ raHotkeysKey(sys), raHotkeysSection(sys) });
+			for (const auto& sys : RA_SYSTEMS) v.push_back({ raButtonsKey(sys), raButtonsSection(sys) });
 			return v;
 		}();
 		return all;
@@ -2368,11 +2347,6 @@ namespace banana
 			{
 				const Item* e = itemByKey("nds_emulator");
 				if (e && e->at < (int)e->values.size() && "nds_" + e->values[e->at] == it.key) v = "In use";
-			}
-			else if (it.kind == Item::PAGE && it.key.compare(0, 11, "hotkeys_ra.") == 0)	// a system's hotkeys: any of its own
-			{
-				if (const Subpage* s = subpageFrom(it.key))
-					for (auto& r : items) if (r.section == s->section && r.at > 0) { v = "Own"; break; }
 			}
 			else if (it.kind == Item::PAGE && it.key == "network") v = wstat.connected ? fit(wstat.ssid, true, 19, 300) : (wifiOn() ? "Choose" : "");
 			else if (it.kind == Item::PAGE && it.key == "bt_devices") v = btRow();
